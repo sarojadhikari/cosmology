@@ -29,8 +29,8 @@ class cosmo(object):
         self.Neff=3.046
         self.flat=True
         self.m_nu=[0., 0., 0.06]
-        self.f_baryon=Ob0/Om0
-        self.h=H0/100.
+        self.f_baryon=self.Ob0/self.Om0
+        self.h=self.H0/100.
         self.A=1.0
         self.fnl=0.0    # cosmology class allows for the primordial skewness to be non-zero.
 
