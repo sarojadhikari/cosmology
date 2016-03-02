@@ -267,12 +267,23 @@ class cosmo(object):
         q=k/self.Om0/self.h
         return np.log(1+2.34*q)/(2.34*q)*(1+3.89*q+(16.2*q)**2.0+(5.47*q)**3.0+(6.71*q)**4.0)**(-0.25)
 
-    def transfer_function(self, k):
+    def transfer_function(self, k, hMpc=True):
         """
         return the transfer function T(k) for the current cosmology
         this python version was simply taken from the C code (tf_fit.c) for EH transfer function
         by just making the formulae compatible with python/numpy.
+
+        note that units are in 1/Mpc in the tf_fit.c code; so,
+        make sure to look at the additional code right after this comment
+        below to change to 1/Mpc if the input is intended to be h/Mpc
         """
+        # make sure to change the input k in units of 1/Mpc is your input
+        # is in h/Mpc
+        #================================================================
+        if (hMpc==True):
+            # convert the units of k from h/Mpc to 1/Mpc
+            k = k * self.h
+
         # first set parameters as in TFset_parameters
         #=============================================
         Tcmb=self.Tcmb0
