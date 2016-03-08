@@ -29,7 +29,7 @@ class Planck2015(cosmo):
         self.n=0.968
         self.r=0.
         self.sigma8=0.815
-        self.tau=0.0952
+        self.tau=0.066
         self.z_reion=11.52
         self.t0=13.7965
         self.Tcmb0=2.7255

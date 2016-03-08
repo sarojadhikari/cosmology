@@ -252,7 +252,8 @@ class cosmo(object):
 
     def volume_factor(self, z, dz):
         """
-        return the volume factor V_i
+        return the volume factor V_i (in (Mpc/h)^3); the
+        units is set by the units of DH in volume_factor_integrand
         """
         result=integrate.quad(self.volume_factor_integrand, z-dz/2.0, z+dz/2.0)
         return result[0]
