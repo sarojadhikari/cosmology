@@ -8,7 +8,7 @@
 
 import numpy as np
 from scipy import integrate
-from utilities.functions import top_hat, Hermite3
+from utilities.functions import top_hat, Hermite3, BesselJ
 
 class cosmo(object):
     """
@@ -170,6 +170,14 @@ class cosmo(object):
         """
         result=integrate.fixed_quad(self.sigma_sq_integrand, 0.0, 40./R, args=(R,))
         return np.sqrt(result[0])
+
+    def xi(self, r=0., z=0.0, R1=8., R2=8.):
+        """return the smoothed two-point correlation function (of two subvolumes of size R1 and R2), r apart
+        """
+        fac = 1./(2.*np.power(np.pi, 2.0))
+        integrand = lambda q: q*q*top_hat(q, R1)*top_hat(q, R2)*BesselJ(0, q*r)*self.power_spectrumz(q, z=z)
+        results = integrate.quad(integrand, 0.0, 40./min(R1, R2))
+        return fac*results[0]
 
     def normalize(self):
         """
