@@ -8,7 +8,7 @@
 
 import numpy as np
 from scipy import integrate
-from functions import top_hat, Hermite3
+from utilities.functions import top_hat, Hermite3
 
 class cosmo(object):
     """
@@ -156,6 +156,15 @@ class cosmo(object):
         return (finite_diff/delta_M)
 
     def sigmaR(self, R):
+        """
+        compute sigma_R by integrating...
+        """
+        fac = 1./(2.*np.power(np.pi, 2.0))
+        integrand = lambda q: q*q*np.power(top_hat(q, R), 2.0)*self.power_spectrumz(q, z=0)
+        results = integrate.quad(integrand, 0.0, 40./R)#, limit=self.QLIMIT)
+        return np.sqrt(fac*results[0])
+
+    def sigmaRfixed(self, R, Nq=5):
         """
         compute sigma_R by integrating...
         """
