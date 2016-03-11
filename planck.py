@@ -5,7 +5,7 @@ cosmology.cosmo class with Planck 2013 and 2015 cosmological parameters
 from cosmology import cosmo
 
 class Planck2013(cosmo):
-    def __init__(self):
+    def set_parameters(self):
         self.name="Planck2013"
         self.Ob0=0.048252; self.Om0=0.30712
         self.H0=67.77
@@ -18,11 +18,9 @@ class Planck2013(cosmo):
         self.m_nu=[0., 0., 0.06]
         self.f_baryon=self.Ob0/self.Om0
         self.h=self.H0/100.
-        self.A=1.0
-        self.normalize() # normalize the primordial amplitude A for the given sigma8
 
 class Planck2015(cosmo):
-    def __init__(self):
+    def set_parameters(self):
         self.name="Planck2015"
         self.Ob0=0.048252; self.Om0=0.308
         self.H0=67.8
@@ -38,5 +36,3 @@ class Planck2015(cosmo):
         self.m_nu=[0., 0., 0.06]
         self.f_baryon=self.Ob0/self.Om0
         self.h=self.H0/100.
-        self.A=1.0
-        self.normalize()

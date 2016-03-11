@@ -16,6 +16,12 @@ class cosmo(object):
     using the currently set cosmological parameters
     """
     def __init__(self):
+        self.set_parameters()
+        self.A=1.0
+        self.gf0=self.growth_factor(0)
+        self.normalize() # normalize the primordial amplitude A for the given sigma8
+
+    def set_parameters(self):
         self.name = "default"   # default means 2013 here
         self.Ob0=0.048252
         self.Om0=0.30712
@@ -32,9 +38,6 @@ class cosmo(object):
         self.m_nu=[0., 0., 0.06]
         self.f_baryon=self.Ob0/self.Om0
         self.h=self.H0/100.
-        self.A=1.0
-        self.gf0=self.grwoth_factor(0)
-        self.normalize() # normalize the primordial amplitude A for the given sigma8
 
     def set_r(self, r):
         self.r=r
