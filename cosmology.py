@@ -32,7 +32,6 @@ class cosmo(object):
         self.f_baryon=self.Ob0/self.Om0
         self.h=self.H0/100.
         self.A=1.0
-        self.fnl=0.0    # cosmology class allows for the primordial skewness to be non-zero.
 
         self.normalize() # normalize the primordial amplitude A for the given sigma8
 
@@ -48,9 +47,6 @@ class cosmo(object):
     def set_sigma8(self, s8):
         self.sigma8=s8
         self.normalize()
-
-    def set_fnl(self, fNL):
-        self.fnl=fNL
 
     def set_Ob0(self, Ob):
         self.Ob0=Ob
@@ -242,24 +238,6 @@ class cosmo(object):
         com_dist_lss=self.comoving_distance(1100.)
         result = 3.*self.Om0*self.H0**2.0*(1+z)*com_dist*(com_dist_lss-com_dist)/(2.*c*com_dist_lss*self.Hubble(z))
         return result
-
-    def fnl2M3(self, fnl):
-        return fnl*0.0003 # this is wealkly cosmology dependent -- ignore the cosmology dependence for now
-
-    def nGMFfactor(self, M, gfratio=1.0):
-        """
-        return the factor with which to multiply the mass function if the cosmology is non-Gaussian
-        """
-        M3=self.fnl2M3(self.fnl)
-        deltac=1.46
-        nuc=deltac/(self.sigmaM(M)*gfratio)
-        return (1.0+M3*(Hermite3(nuc))/6.0)
-
-    def baryon_factor(self, M):
-        """
-        return the Vellisg et. al. factor for change in HMF due to their model:
-        """
-        return 1.0
 
     def volume_factor_integrand(self, z):
         """
