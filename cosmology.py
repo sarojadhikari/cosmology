@@ -16,6 +16,7 @@ class cosmo(object):
     using the currently set cosmological parameters
     """
     def __init__(self):
+        self.name = "default"   # default means 2013 here
         self.Ob0=0.048252
         self.Om0=0.30712
         self.H0=67.77
