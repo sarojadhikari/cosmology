@@ -171,11 +171,14 @@ class cosmo(object):
         result=integrate.fixed_quad(self.sigma_sq_integrand, 0.0, 40./R, args=(R,))
         return np.sqrt(result[0])
 
-    def xi(self, r=0., z=0.0, R1=8., R2=8.):
+    def xi(self, r=0., z1=0.0, R1=8., z2=0.0, R2=8.):
         """return the smoothed two-point correlation function (of two subvolumes of size R1 and R2), r apart
         """
-        fac = 1./(2.*np.power(np.pi, 2.0))
-        integrand = lambda q: q*q*top_hat(q, R1)*top_hat(q, R2)*BesselJ(0, q*r)*self.power_spectrumz(q, z=z)
+        gf0 = self.growth_factor(0.)
+        fz1 = self.growth_factor(z1)/gf0
+        fz2 = self.growth_factor(z2)/gf0
+        fac = fz1*fz2/(2.*np.power(np.pi, 2.0))
+        integrand = lambda q: q*q*top_hat(q, R1)*top_hat(q, R2)*BesselJ(0, q*r)*self.power_spectrumz(q, z=0)
         results = integrate.quad(integrand, 0.0, 40./min(R1, R2))
         return fac*results[0]
 
