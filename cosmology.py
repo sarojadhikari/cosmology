@@ -33,7 +33,7 @@ class cosmo(object):
         self.f_baryon=self.Ob0/self.Om0
         self.h=self.H0/100.
         self.A=1.0
-
+        self.gf0=self.grwoth_factor(0)
         self.normalize() # normalize the primordial amplitude A for the given sigma8
 
     def set_r(self, r):
@@ -91,7 +91,7 @@ class cosmo(object):
         """
         returns the matter power spectrum at wave number k at a redshift z
         """
-        return self.power_spectrum0(self.A, k)*np.power(self.growth_factor(z)/self.growth_factor(0.), 2.0)
+        return self.power_spectrum0(self.A, k)*np.power(self.gfratio(z), 2.0)
 
     def power_spectrum0(self, A, k):
         """
@@ -171,10 +171,7 @@ class cosmo(object):
     def xi(self, r=0., z1=0.0, R1=8., z2=0.0, R2=8.):
         """return the smoothed two-point correlation function (of two subvolumes of size R1 and R2), r apart
         """
-        gf0 = self.growth_factor(0.)
-        fz1 = self.growth_factor(z1)/gf0
-        fz2 = self.growth_factor(z2)/gf0
-        fac = fz1*fz2/(2.*np.power(np.pi, 2.0))
+        fac = self.gfratio(z1)*self.gfratio(z2)/(2.*np.power(np.pi, 2.0))
         integrand = lambda q: q*q*top_hat(q, R1)*top_hat(q, R2)*BesselJ(0, q*r)*self.power_spectrumz(q, z=0)
         results = integrate.quad(integrand, 0.0, 40./min(R1, R2))
         return fac*results[0]
@@ -202,15 +199,21 @@ class cosmo(object):
         hubblez=100*self.h*np.sqrt(self.Om0*pow(1+z,3.0)+(1-self.Om0))
         return (1+z)/pow(hubblez/(100.0*self.h),3.0)
 
+    def gfratio(self, z):
+        """
+        return the ratio of the growth factor at redshift z to that
+        of the growth factor at redshift 0
+        """
+        return self.growth_factor(z)/self.gf0
+
     def growth_factor(self, z):
         """
         return the growth factor D(z)
         """
-        if (z==0):
-            return 0.78
         result=integrate.quad(self.growth_factor_integrand, z, 1000) # therefore only valid at z<<1000.
         hubblez=100*self.h*np.sqrt(self.Om0*pow(1+z,3.0)+(1-self.Om0))
-        return (5.0*self.Om0*hubblez/(2*100.*self.h))*result[0]
+        gf = (5.0*self.Om0*hubblez/(2*100.*self.h))*result[0]
+        return gf
 
     def E(self, z):
         """
