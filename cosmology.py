@@ -12,32 +12,25 @@ from utilities.functions import top_hat, Hermite3, BesselJ
 
 class cosmo(object):
     """
-    define the cosmology and provide many methods to compute basic cosmological quantities
-    using the currently set cosmological parameters
+    define the cosmology and provide many methods to compute basic cosmological quantities using the currently set cosmological parameters
     """
     def __init__(self):
         self.set_parameters()
         self.A=1.0
+        self.f_baryon=self.Ob0/self.Om0
+        self.h=self.H0/100.
         self.gf0=self.growth_factor(0)
         self.normalize() # normalize the primordial amplitude A for the given sigma8
 
     def set_parameters(self):
         self.name = "default"   # default means 2013 here
-        self.Ob0=0.048252
-        self.Om0=0.30712
-        self.H0=67.77
-        self.n=0.9611
-        self.r=0.
-        self.sigma8=0.8288
-        self.tau=0.0952
-        self.t0=13.7965
-        self.z_reion=11.52
-        self.Tcmb0=2.7255
-        self.Neff=3.046
-        self.flat=True
-        self.m_nu=[0., 0., 0.06]
-        self.f_baryon=self.Ob0/self.Om0
-        self.h=self.H0/100.
+        self.Ob0=0.048252; self.Om0=0.30712
+        self.H0=67.77; self.sigma8=0.8288
+        self.n=0.9611; self.r=0.
+        self.tau=0.0952; self.t0=13.7965
+        self.z_reion=11.52; self.Tcmb0=2.7255
+        self.Neff=3.046; self.m_nu=[0., 0., 0.06]
+        self.flat = True
 
     def set_r(self, r):
         self.r=r
