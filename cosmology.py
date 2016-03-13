@@ -8,7 +8,9 @@
 
 import numpy as np
 from scipy import integrate
+from scipy.interpolate import interp1d
 from utilities.functions import top_hat, Hermite3, BesselJ
+import camb
 
 class cosmo(object):
     """
@@ -31,6 +33,22 @@ class cosmo(object):
         self.z_reion=11.52; self.Tcmb0=2.7255
         self.Neff=3.046; self.m_nu=[0., 0., 0.06]
         self.flat = True
+
+    def set_camb_parameters(self):
+        """
+        """
+        self.cambparams = camb.CAMBparams()
+        self.cambparams.set_cosmology(H0=self.cosmology.H0, ombh2=self.cosmology.Ob0*self.cosmology.h**2.0, omch2=self.cosmology.Om0*self.cosmology.h**2.0, omk=0, tau=self.cosmology.tau, mnu=self.cosmology.m_nu[-1])
+        self.cambparams.InitPower.set_params(As=self.cosmology.As, ns=self.cosmology.n, r=self.cosmology.r)
+
+    def get_nonlin_power(self, z=0., KMAX=2.0):
+        self.cambparams.set_matter_power(redshifts=[z], kmax=KMAX)
+        self.cambparams.NonLinear = camb.model.NonLinear_both
+        self.cambresults = camb.get_results(self.cambparams)
+        kh_nonlin, z_nonlin, pk_nonlin = results
+        # now that we have the power spectrum; interpolate
+        self.camb_power_nonlin = interp1d(kh_nonlin, pk_nonlin[0,:])
+        return self.camb_power_nonlin
 
     def set_r(self, r):
         self.r=r
@@ -164,6 +182,22 @@ class cosmo(object):
         integrand = lambda q: q*q*top_hat(q, R1)*top_hat(q, R2)*BesselJ(0, q*r)*self.power_spectrumz(q, z=0)
         results = integrate.quad(integrand, 0.0, 40./min(R1, R2))
         return fac*results[0]
+
+    def non_linear_matter_power(self, k):
+        """ return a interpolated function for the non-linear matter
+        power spectrum; the data points are computed using CAMB
+        non-linear spectrum (Halofit)
+        """
+        self.cambparams = camb.CAMBparams()
+
+
+
+    def xiNL(self, r=0., z1=0.0, R1=8., z2=0.0, R2=8.):
+        """return the smoothed two-point correlation function (of two subvolumes of size R1 and R2), r apart
+
+        this version differs from xi() in the use of the non-linear power
+        spectrum from CAMB
+        """
 
     def normalize(self):
         """
