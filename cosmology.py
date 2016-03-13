@@ -157,13 +157,6 @@ class cosmo(object):
         results = integrate.quad(integrand, 0.0, 40./R)#, limit=self.QLIMIT)
         return np.sqrt(fac*results[0])
 
-    def sigmaRfixed(self, R, Nq=5):
-        """
-        compute sigma_R by integrating...
-        """
-        result=integrate.fixed_quad(self.sigma_sq_integrand, 0.0, 40./R, args=(R,))
-        return np.sqrt(result[0])
-
     def xi(self, r=0., z1=0.0, R1=8., z2=0.0, R2=8.):
         """return the smoothed two-point correlation function (of two subvolumes of size R1 and R2), r apart
         """
