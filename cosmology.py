@@ -18,10 +18,13 @@ class cosmo(object):
     """
     def __init__(self):
         self.set_parameters()
-        self.A=1.0
+        self.A=1E-10; self.As = (25./9)*self.A
+        self.k0=0.05
         self.f_baryon=self.Ob0/self.Om0
         self.h=self.H0/100.
-        self.gf0=self.growth_factor(0)
+        self.gf0=self.growth_factor(0.)
+        #self.set_camb_parameters()
+        #self.get_nonlin_power()
         self.normalize() # normalize the primordial amplitude A for the given sigma8
 
     def set_parameters(self):
@@ -38,16 +41,22 @@ class cosmo(object):
         """
         """
         self.cambparams = camb.CAMBparams()
-        self.cambparams.set_cosmology(H0=self.cosmology.H0, ombh2=self.cosmology.Ob0*self.cosmology.h**2.0, omch2=self.cosmology.Om0*self.cosmology.h**2.0, omk=0, tau=self.cosmology.tau, mnu=self.cosmology.m_nu[-1])
-        self.cambparams.InitPower.set_params(As=self.cosmology.As, ns=self.cosmology.n, r=self.cosmology.r)
+        self.cambparams.set_cosmology(H0=self.H0, ombh2=self.Ob0*self.h**2.0, omch2=self.Om0*self.h**2.0, omk=0, tau=self.tau, mnu=self.m_nu[-1])
+        self.cambparams.InitPower.set_params(As=self.As, ns=self.n, pivot_scalar=0.05, r=self.r)
 
-    def get_nonlin_power(self, z=0., KMAX=2.0):
+    def get_nonlin_power(self, z=0., KMAX=2.0, nl=True):
         self.cambparams.set_matter_power(redshifts=[z], kmax=KMAX)
-        self.cambparams.NonLinear = camb.model.NonLinear_both
+        if (nl):
+            self.cambparams.NonLinear = camb.model.NonLinear_both
+        else:
+            self.cambparams.NonLinear = camb.model.NonLinear_none
+
         self.cambresults = camb.get_results(self.cambparams)
-        kh_nonlin, z_nonlin, pk_nonlin = results
+        kh_nonlin, z_nonlin, pk_nonlin = self.cambresults.get_matter_power_spectrum(minkh=1E-4, maxkh=1., npoints=500)
         # now that we have the power spectrum; interpolate
+        kh_lin, z_lin, pk_lin = self.cambresults.get_linear_matter_power_spectrum()
         self.camb_power_nonlin = interp1d(kh_nonlin, pk_nonlin[0,:])
+        self.camb_power_lin = interp1d(kh_lin, pk_lin[0,:])
         return self.camb_power_nonlin
 
     def set_r(self, r):
@@ -107,13 +116,13 @@ class cosmo(object):
         """
         return self.power_spectrum0(self.A, k)*np.power(self.gfratio(z), 2.0)
 
-    def power_spectrum0(self, A, k):
+    def power_spectrum0(self, A, k, k0=0.05):
         """
         returns the matter power spectrum value at wave number k, given A at z=0
         """
         if A==0.:
             A=self.A
-        return A*(2.*np.pi**2.0)*k**self.n * (2998./self.h)**(3.+self.n)*(self.transfer_function(k)*self.growth_factor(0.0))**2.0
+        return A*np.power(self.alpha(k,z=0), 2.0)*2.*np.power(np.pi, 2.0)*np.power(k/k0, self.n-1.0)/np.power(k, 3.0) # alternatively one can directly implement alpha(k,z=0) here are cancel some powers of k
 
     def power_spectrum_bbks(self, A, k):
         """
@@ -168,12 +177,14 @@ class cosmo(object):
 
     def sigmaR(self, R):
         """
-        compute sigma_R by integrating...
+        compute sigma_R by integrating;
+        now use the CAMB power spectrum
         """
-        fac = 1./(2.*np.power(np.pi, 2.0))
-        integrand = lambda q: q*q*np.power(top_hat(q, R), 2.0)*self.power_spectrumz(q, z=0)
-        results = integrate.quad(integrand, 0.0, 40./R)#, limit=self.QLIMIT)
-        return np.sqrt(fac*results[0])
+        #fac = 1./(2.*np.power(np.pi, 2.0))
+        integrand = lambda q: np.power(top_hat(q, R)*self.alpha(q), 2.0)*self.pps(self.A, q, self.k0)/q
+        #integrand = lambda q: q*q*np.power(top_hat(q, R), 2.0)*self.camb_power_lin(q)
+        results = integrate.quad(integrand, 0.0, 20./R, limit=80)
+        return np.sqrt(results[0])
 
     def xi(self, r=0., z1=0.0, R1=8., z2=0.0, R2=8.):
         """return the smoothed two-point correlation function (of two subvolumes of size R1 and R2), r apart
@@ -188,9 +199,6 @@ class cosmo(object):
         power spectrum; the data points are computed using CAMB
         non-linear spectrum (Halofit)
         """
-        self.cambparams = camb.CAMBparams()
-
-
 
     def xiNL(self, r=0., z1=0.0, R1=8., z2=0.0, R2=8.):
         """return the smoothed two-point correlation function (of two subvolumes of size R1 and R2), r apart
@@ -210,13 +218,16 @@ class cosmo(object):
         self.A = self.A*(self.sigma8/self.sigmaR(8.0))**2.0
         self.As = self.A*np.power(5./3., 2.0)
 
-    def alpha(self, k,z):
+    def alpha(self, k,z=0):
         """
         return the product of transfer function and the growth factor at a wavenumber k and redshift
         z with other appropriate factors; alpha relates the primordial gravitational potential to the overdensity
         """
         c=299792.458 # speed of light in km/s
-        return 2.0*k*k*self.transfer_function(k)*self.growth_factor(z)*c*c/(3.0*self.Om0*self.H0**2.0)
+        if (z==0):
+            return 2.0*k*k*self.transfer_function(k)*self.gf0*c*c/(3.0*self.Om0*np.power(self.H0/self.h, 2.0))
+        else:
+            return 2.0*k*k*self.transfer_function(k)*self.growth_factor(z)*c*c/(3.0*self.Om0*np.power(self.H0/self.h, 2.0))
 
     def growth_factor_integrand(self, z):
         """
