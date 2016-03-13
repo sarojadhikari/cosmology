@@ -176,9 +176,12 @@ class cosmo(object):
         """
         nomrmalize the amplitude of primordial fluctuations A so as to produce
         the sigma8 of the current cosmology
+        A  : amplitude for the Bardeen potential \Phi
+        As : amplitude for the scalar curvature perturbation \zeta
 
         """
         self.A = self.A*(self.sigma8/self.sigmaR(8.0))**2.0
+        self.As = self.A*np.power(5./3., 2.0)
 
     def alpha(self, k,z):
         """
