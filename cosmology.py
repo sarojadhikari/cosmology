@@ -19,9 +19,9 @@ class cosmo(object):
     def __init__(self):
         self.set_parameters()
         self.A=1E-10; self.As = (25./9)*self.A
-        self.k0=0.05
-        self.f_baryon=self.Ob0/self.Om0
         self.h=self.H0/100.
+        self.k0=0.05/self.h
+        self.f_baryon=self.Ob0/self.Om0
         self.gf0=self.growth_factor(0.)
         #self.set_camb_parameters()
         #self.get_nonlin_power()
@@ -42,7 +42,7 @@ class cosmo(object):
         """
         self.cambparams = camb.CAMBparams()
         self.cambparams.set_cosmology(H0=self.H0, ombh2=self.Ob0*self.h**2.0, omch2=self.Om0*self.h**2.0, omk=0, tau=self.tau, mnu=self.m_nu[-1])
-        self.cambparams.InitPower.set_params(As=self.As, ns=self.n, pivot_scalar=0.05, r=self.r)
+        self.cambparams.InitPower.set_params(As=self.As, ns=self.n, pivot_scalar=self.k0, r=self.r)
 
     def get_nonlin_power(self, z=0., KMAX=2.0, nl=True):
         self.cambparams.set_matter_power(redshifts=[z], kmax=KMAX)
@@ -52,7 +52,7 @@ class cosmo(object):
             self.cambparams.NonLinear = camb.model.NonLinear_none
 
         self.cambresults = camb.get_results(self.cambparams)
-        kh_nonlin, z_nonlin, pk_nonlin = self.cambresults.get_matter_power_spectrum(minkh=1E-4, maxkh=1., npoints=500)
+        kh_nonlin, z_nonlin, pk_nonlin = self.cambresults.get_matter_power_spectrum(minkh=1E-5, maxkh=1.5, npoints=500)
         # now that we have the power spectrum; interpolate
         kh_lin, z_lin, pk_lin = self.cambresults.get_linear_matter_power_spectrum()
         self.camb_power_nonlin = interp1d(kh_nonlin, pk_nonlin[0,:])
@@ -116,13 +116,13 @@ class cosmo(object):
         """
         return self.power_spectrum0(self.A, k)*np.power(self.gfratio(z), 2.0)
 
-    def power_spectrum0(self, A, k, k0=0.05):
+    def power_spectrum0(self, A, k):
         """
         returns the matter power spectrum value at wave number k, given A at z=0
         """
         if A==0.:
             A=self.A
-        return A*np.power(self.alpha(k,z=0), 2.0)*2.*np.power(np.pi, 2.0)*np.power(k/k0, self.n-1.0)/np.power(k, 3.0) # alternatively one can directly implement alpha(k,z=0) here are cancel some powers of k
+        return A*np.power(self.alpha(k,z=0), 2.0)*2.*np.power(np.pi, 2.0)*np.power(k/self.k0, self.n-1.0)/np.power(k, 3.0) # alternatively one can directly implement alpha(k,z=0) here are cancel some powers of k
 
     def power_spectrum_bbks(self, A, k):
         """
@@ -191,7 +191,18 @@ class cosmo(object):
         """
         fac = self.gfratio(z1)*self.gfratio(z2)/(2.*np.power(np.pi, 2.0))
         integrand = lambda q: q*q*top_hat(q, R1)*top_hat(q, R2)*BesselJ(0, q*r)*self.power_spectrumz(q, z=0)
-        results = integrate.quad(integrand, 0.0, 40./min(R1, R2))
+        results = integrate.quad(integrand, 0.0, 20./min(R1, R2))
+        return fac*results[0]
+
+    def xi_camb(self, r=0., z1=0.0, R1=8., z2=0.0, R2=8.):
+        """return the smoothed two-point correlation function
+        using the non-linear matter spectrum from camb
+
+        make sure to run get_nonlin_power using z=0
+        """
+        fac = self.gfratio(z1)*self.gfratio(z2)/(2.*np.power(np.pi, 2.0))
+        integrand = lambda q: q*q*top_hat(q, R1)*top_hat(q, R2)*BesselJ(0, q*r)*self.camb_power_nonlin(q)
+        results = integrate.quad(integrand, 2E-5, 20./min(R1, R2), limit=300)
         return fac*results[0]
 
     def non_linear_matter_power(self, k):
