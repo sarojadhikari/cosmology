@@ -16,16 +16,18 @@ class cosmo(object):
     """
     define the cosmology and provide many methods to compute basic cosmological quantities using the currently set cosmological parameters
     """
-    def __init__(self):
+    def __init__(self, init_camb=True):
         self.set_parameters()
         self.A=1E-10; self.As = (25./9)*self.A
         self.h=self.H0/100.
         self.k0=0.05/self.h
         self.f_baryon=self.Ob0/self.Om0
         self.gf0=self.growth_factor(0.)
-        #self.set_camb_parameters()
-        #self.get_nonlin_power()
         self.normalize() # normalize the primordial amplitude A for the given sigma8
+        self.camb_init = False
+        self.camb_transfer_init = False
+        if (init_camb):
+            self.init_camb()
 
     def set_parameters(self):
         self.name = "default"   # default means 2013 here
@@ -37,12 +39,28 @@ class cosmo(object):
         self.Neff=3.046; self.m_nu=[0., 0., 0.06]
         self.flat = True
 
-    def set_camb_parameters(self):
+    def init_camb(self):
+        self.set_camb_parameters()
+        self.get_nonlin_power()
+        self.camb_init = True
+
+    def set_camb_parameters(self, LMAX=500):
         """
         """
         self.cambparams = camb.CAMBparams()
         self.cambparams.set_cosmology(H0=self.H0, ombh2=self.Ob0*self.h**2.0, omch2=self.Om0*self.h**2.0, omk=0, tau=self.tau, mnu=self.m_nu[-1])
         self.cambparams.InitPower.set_params(As=self.As, ns=self.n, pivot_scalar=self.k0, r=self.r)
+        self.cambparams.set_for_lmax(LMAX)
+
+    def init_camb_transfer(self):
+        if not(self.camb_transfer_init):
+            if not(self.camb_init):
+                self.init_camb()
+
+            self.cambparams.set_accuracy(AccuracyBoost=2, lSampleBoost=40)
+            self.cambdata = camb.get_transfer_functions(self.cambparams)
+            self.cambtransfer = self.cambdata.get_cmb_transfer_data()
+            self.camb_transfer_init = True
 
     def get_nonlin_power(self, z=0., KMAX=2.0, nl=True):
         self.cambparams.set_matter_power(redshifts=[z], kmax=KMAX)
@@ -58,6 +76,11 @@ class cosmo(object):
         self.camb_power_nonlin = interp1d(kh_nonlin, pk_nonlin[0,:])
         self.camb_power_lin = interp1d(kh_lin, pk_lin[0,:])
         return self.camb_power_nonlin
+
+    def get_cmb_transfer_l(self, l=2):
+        self.init_camb_transfer()
+        klist, tlist = self.cambtransfer.q, self.cambtransfer.delta_p_l_k[0, l-2,:]
+        return klist, tlist
 
     def set_r(self, r):
         self.r=r
@@ -194,6 +217,12 @@ class cosmo(object):
         results = integrate.quad(integrand, 0.0, 20./min(R1, R2))
         return fac*results[0]
 
+    def xi_cube(self, r=0., z1=0.0, R1=8., z2=0.0, R2=8.0):
+        """return the smoothed two-point correlation function for the case of
+        a cubic volume
+        """
+        integrand = lambda qx, qy, qz: cubic_top_hat(2*R1, qx, qy, qz)*cubic_top_hat(2*R2, qx, qy, qz)*self.power_spectrumz(np.sqrt(qx*qx+qy*qy+qz*qz), z=0.)*BesselJ(0, np.sqrt(qx*qx+qy*qy))
+
     def xi_camb(self, r=0., z1=0.0, R1=8., z2=0.0, R2=8.):
         """return the smoothed two-point correlation function
         using the non-linear matter spectrum from camb
@@ -307,6 +336,20 @@ class cosmo(object):
         """
         result=integrate.quad(self.volume_factor_integrand, z-dz/2.0, z+dz/2.0)
         return result[0]
+
+    def comoving_volume(self, z):
+        """
+        return the comoving (spherical) volume enclosed upto redshift z
+        """
+        r = self.comoving_distance(z)
+        return 4.*np.pi*np.power(r, 3.0)/3
+
+    def comoving_volume_shell(self, z1, z2):
+        """
+        return the comoving volume of a spherical shell enclosed by two
+        redshifts
+        """
+        return self.comoving_volume(z2)-self.comoving_volume(z1)
 
     def transfer_function_bbks(self, k):
         """
