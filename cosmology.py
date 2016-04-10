@@ -33,7 +33,7 @@ class cosmo(object):
         self.name = "default"   # default means 2013 here
         self.Ob0=0.048252; self.Om0=0.30712
         self.H0=67.77; self.sigma8=0.8288
-        self.n=0.9611; self.r=0.
+        self.n=0.9611; self.r=0.; self.ns = self.n
         self.tau=0.0952; self.t0=13.7965
         self.z_reion=11.52; self.Tcmb0=2.7255
         self.Neff=3.046; self.m_nu=[0., 0., 0.06]
@@ -47,17 +47,18 @@ class cosmo(object):
     def set_camb_parameters(self, LMAX=500):
         """
         """
+        self.camblmax = LMAX
         self.cambparams = camb.CAMBparams()
         self.cambparams.set_cosmology(H0=self.H0, ombh2=self.Ob0*self.h**2.0, omch2=self.Om0*self.h**2.0, omk=0, tau=self.tau, mnu=self.m_nu[-1])
         self.cambparams.InitPower.set_params(As=self.As, ns=self.n, pivot_scalar=self.k0, r=self.r)
         self.cambparams.set_for_lmax(LMAX)
 
-    def init_camb_transfer(self):
+    def init_camb_transfer(self, aboost=5, lboost = 50):
         if not(self.camb_transfer_init):
             if not(self.camb_init):
                 self.init_camb()
 
-            self.cambparams.set_accuracy(AccuracyBoost=2, lSampleBoost=40)
+            self.cambparams.set_accuracy(AccuracyBoost=aboost, lSampleBoost=lboost)
             self.cambdata = camb.get_transfer_functions(self.cambparams)
             self.cambtransfer = self.cambdata.get_cmb_transfer_data()
             self.camb_transfer_init = True
@@ -103,6 +104,7 @@ class cosmo(object):
 
     def set_n(self, ns):
         self.n=ns
+        self.ns=ns
 
     def set_h(self, h):
         self.h=h
@@ -291,6 +293,26 @@ class cosmo(object):
         hubblez=100*self.h*np.sqrt(self.Om0*pow(1+z,3.0)+(1-self.Om0))
         gf = (5.0*self.Om0*hubblez/(2*100.*self.h))*result[0]
         return gf
+
+    def E4(self, z, Omk = 0.):
+        """
+        return the function
+        :math:`E(z)=\sqrt{\Omega_m(1+z)^3+\Omega_\Lambda+\Omega_k (1+z)^2+\Omega_r (1+z)^4}`
+
+        Use: 1+zeq = Omega_m/Omega_r
+        """
+        Omr = self.Om0/(1+self.zeq)
+        return np.sqrt(self.Om0*(1+z)**3.0+(1-self.Om0)+Omk*(1+z)**2.0+Omr*(1+z)**4.0)
+
+    def scale_factor_time(self, a, Omk=0.):
+        """
+        return the loopback time for the scale factor a
+        """
+        redshift = (1./a)-1.
+        zmax = np.infty
+        integrand = lambda z: 1./((1+z)*self.E4(z, Omk))
+        result = (1./self.H0)*integrate.quad(integrand, redshift, zmax, limit=1000)[0]
+        return result
 
     def E(self, z):
         """
