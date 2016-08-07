@@ -44,12 +44,12 @@ class cosmo(object):
         self.get_nonlin_power()
         self.camb_init = True
 
-    def set_camb_parameters(self, LMAX=500):
+    def set_camb_parameters(self, LMAX=500, Omk=0.0):
         """
         """
         self.camblmax = LMAX
         self.cambparams = camb.CAMBparams()
-        self.cambparams.set_cosmology(H0=self.H0, ombh2=self.Ob0*self.h**2.0, omch2=self.Om0*self.h**2.0, omk=0, tau=self.tau, mnu=self.m_nu[-1])
+        self.cambparams.set_cosmology(H0=self.H0, ombh2=self.Ob0*self.h**2.0, omch2=self.Om0*self.h**2.0, omk=Omk, tau=self.tau, mnu=self.m_nu[-1])
         self.cambparams.InitPower.set_params(As=self.As, ns=self.n, pivot_scalar=self.k0, r=self.r)
         self.cambparams.set_for_lmax(LMAX)
 
@@ -121,7 +121,7 @@ class cosmo(object):
         M_sun=1.989e33 # in grams
         return crit_dens*self.Om0/(M_sun/self.h) # in M_sun/h Mpc^{-3}
 
-    def pps(self, A, k, k0):
+    def primordial_power(self, A, k, k0):
         """
         return the dimensionless primordial power spectrum value at a wave number k,
         given amplitude A and the current cosmology, using pivot wavenumber k0
@@ -132,8 +132,6 @@ class cosmo(object):
 
         """
         return  A*(k/k0)**(self.n-1)
-
-    primordial_power_spectrum = pps
 
     def power_spectrumz(self, k, z=0):
         """
@@ -253,8 +251,10 @@ class cosmo(object):
         """
         nomrmalize the amplitude of primordial fluctuations A so as to produce
         the sigma8 of the current cosmology
-        A  : amplitude for the Bardeen potential \Phi
-        As : amplitude for the scalar curvature perturbation \zeta
+
+        * A  : amplitude for the Bardeen potential :math:`\Phi` and
+
+        * As : amplitude for the scalar curvature perturbation :math:`\zeta`
 
         """
         self.A = self.A*(self.sigma8/self.sigmaR(8.0))**2.0
@@ -299,7 +299,8 @@ class cosmo(object):
         return the function
         :math:`E(z)=\sqrt{\Omega_m(1+z)^3+\Omega_\Lambda+\Omega_k (1+z)^2+\Omega_r (1+z)^4}`
 
-        Use: 1+zeq = Omega_m/Omega_r
+        Use:
+        :math:`1+z_{eq} = \Omega_m/\Omega_r`
         """
         Omr = self.Om0/(1+self.zeq)
         return np.sqrt(self.Om0*(1+z)**3.0+(1-self.Om0)+Omk*(1+z)**2.0+Omr*(1+z)**4.0)
@@ -325,7 +326,7 @@ class cosmo(object):
 
     def comoving_distance(self, z):
         """
-        return the comoving distance :math:`D(z) = \int \frac{c dt}{a}`
+        return the comoving distance :math:`D(z) = \\int \\frac{c dt}{a}`
         as a function of the redshift
         """
         c=299792.458 # speed of light in km/s
