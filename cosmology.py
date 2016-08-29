@@ -14,7 +14,7 @@ import camb
 
 class cosmo(object):
     """
-    define the cosmology and provide many methods to compute basic cosmological quantities using the currently set cosmological parameters
+    define a cosmology and provide methods to compute basic cosmological quantities using the currently set cosmological parameters
     """
     def __init__(self, init_camb=True):
         self.set_parameters()
@@ -42,6 +42,7 @@ class cosmo(object):
     def init_camb(self):
         self.set_camb_parameters()
         self.get_nonlin_power()
+        self.camb_accuracy_bost=1
         self.camb_init = True
 
     def set_camb_parameters(self, LMAX=500, Omk=0.0):
@@ -54,11 +55,12 @@ class cosmo(object):
         self.cambparams.set_for_lmax(LMAX)
 
     def init_camb_transfer(self, aboost=5, lboost = 50):
-        if not(self.camb_transfer_init):
+        if not(self.camb_transfer_init) or not(aboost==self.camb_accuracy_bost):
             if not(self.camb_init):
                 self.init_camb()
 
             self.cambparams.set_accuracy(AccuracyBoost=aboost, lSampleBoost=lboost)
+            self.camb_accuracy_bost=aboost
             self.cambdata = camb.get_transfer_functions(self.cambparams)
             self.cambtransfer = self.cambdata.get_cmb_transfer_data()
             self.camb_transfer_init = True
@@ -78,8 +80,8 @@ class cosmo(object):
         self.camb_power_lin = interp1d(kh_lin, pk_lin[0,:])
         return self.camb_power_nonlin
 
-    def get_cmb_transfer_l(self, l=2):
-        self.init_camb_transfer()
+    def get_cmb_transfer_l(self, l=2, aboost=5, lboost=50):
+        self.init_camb_transfer(aboost=aboost, lboost=lboost)
         klist, tlist = self.cambtransfer.q, self.cambtransfer.delta_p_l_k[0, l-2,:]
         return klist, tlist
 
@@ -204,7 +206,7 @@ class cosmo(object):
         now use the CAMB power spectrum
         """
         #fac = 1./(2.*np.power(np.pi, 2.0))
-        integrand = lambda q: np.power(top_hat(q, R)*self.alpha(q), 2.0)*self.pps(self.A, q, self.k0)/q
+        integrand = lambda q: np.power(top_hat(q, R)*self.alpha(q), 2.0)*self.primordial_power(self.A, q, self.k0)/q
         #integrand = lambda q: q*q*np.power(top_hat(q, R), 2.0)*self.camb_power_lin(q)
         results = integrate.quad(integrand, 0.0, 20./R, limit=80)
         return np.sqrt(results[0])
