@@ -41,8 +41,8 @@ class cosmo(object):
 
     def init_camb(self):
         self.set_camb_parameters()
-        self.get_nonlin_power()
-        self.camb_accuracy_bost=1
+        #self.get_nonlin_power()
+        self.camb_accuracy_boost=1
         self.camb_init = True
 
     def set_camb_parameters(self, LMAX=500, Omk=0.0):
@@ -55,12 +55,16 @@ class cosmo(object):
         self.cambparams.set_for_lmax(LMAX)
 
     def init_camb_transfer(self, aboost=5, lboost = 50):
-        if not(self.camb_transfer_init) or not(aboost==self.camb_accuracy_bost):
+        """
+        be careful when using aboost > 6
+        """
+        
+        if not(self.camb_transfer_init) or not(aboost==self.camb_accuracy_boost):
             if not(self.camb_init):
                 self.init_camb()
 
             self.cambparams.set_accuracy(AccuracyBoost=aboost, lSampleBoost=lboost)
-            self.camb_accuracy_bost=aboost
+            self.camb_accuracy_boost=aboost
             self.cambdata = camb.get_transfer_functions(self.cambparams)
             self.cambtransfer = self.cambdata.get_cmb_transfer_data()
             self.camb_transfer_init = True
@@ -81,6 +85,10 @@ class cosmo(object):
         return self.camb_power_nonlin
 
     def get_cmb_transfer_l(self, l=2, aboost=5, lboost=50):
+        """
+            lboost = 50 means all ls sampled
+            large accuracy boost is necessary for accurate alpha(r)
+        """
         self.init_camb_transfer(aboost=aboost, lboost=lboost)
         klist, tlist = self.cambtransfer.q, self.cambtransfer.delta_p_l_k[0, l-2,:]
         return klist, tlist
