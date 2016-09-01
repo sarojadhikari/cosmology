@@ -42,7 +42,6 @@ class cosmo(object):
     def init_camb(self):
         self.set_camb_parameters()
         #self.get_nonlin_power()
-        self.camb_accuracy_boost=1
         self.camb_init = True
 
     def set_camb_parameters(self, LMAX=500, Omk=0.0):
@@ -50,21 +49,25 @@ class cosmo(object):
         """
         self.camblmax = LMAX
         self.cambparams = camb.CAMBparams()
+        self.cambtransferparams = camb.model.TransferParams()
         self.cambparams.set_cosmology(H0=self.H0, ombh2=self.Ob0*self.h**2.0, omch2=self.Om0*self.h**2.0, omk=Omk, tau=self.tau, mnu=self.m_nu[-1])
         self.cambparams.InitPower.set_params(As=self.As, ns=self.n, pivot_scalar=self.k0, r=self.r)
         self.cambparams.set_for_lmax(LMAX)
+        self.cambtransferparams.high_precision = 0 # set high precison to True
+        self.cambparams.set_accuracy(AccuracyBoost=12, lSampleBoost=50)
 
-    def init_camb_transfer(self, aboost=5, lboost = 50):
+    def init_camb_transfer(self):
         """
-        be careful when using aboost > 6
         """
         
-        if not(self.camb_transfer_init) or not(aboost==self.camb_accuracy_boost):
+        if not(self.camb_transfer_init):
+            """
+            get the transfer data if it is the first time or if the specified 
+            accuracy aboost is greater than the one that is saved
+            """
             if not(self.camb_init):
                 self.init_camb()
 
-            self.cambparams.set_accuracy(AccuracyBoost=aboost, lSampleBoost=lboost)
-            self.camb_accuracy_boost=aboost
             self.cambdata = camb.get_transfer_functions(self.cambparams)
             self.cambtransfer = self.cambdata.get_cmb_transfer_data()
             self.camb_transfer_init = True
@@ -84,12 +87,10 @@ class cosmo(object):
         self.camb_power_lin = interp1d(kh_lin, pk_lin[0,:])
         return self.camb_power_nonlin
 
-    def get_cmb_transfer_l(self, l=2, aboost=5, lboost=50):
+    def get_cmb_transfer_l(self, l=2):
         """
-            lboost = 50 means all ls sampled
-            large accuracy boost is necessary for accurate alpha(r)
         """
-        self.init_camb_transfer(aboost=aboost, lboost=lboost)
+        self.init_camb_transfer()
         klist, tlist = self.cambtransfer.q, self.cambtransfer.delta_p_l_k[0, l-2,:]
         return klist, tlist
 
