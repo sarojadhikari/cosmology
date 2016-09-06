@@ -44,7 +44,7 @@ class cosmo(object):
         #self.get_nonlin_power()
         self.camb_init = True
 
-    def set_camb_parameters(self, LMAX=500, Omk=0.0, aboost=1):
+    def set_camb_parameters(self, LMAX=2500, Omk=0.0, aboost=1):
         """
         """
         self.camblmax = LMAX
@@ -53,7 +53,7 @@ class cosmo(object):
         self.cambparams.set_cosmology(H0=self.H0, ombh2=self.Ob0*self.h**2.0, omch2=self.Om0*self.h**2.0, omk=Omk, tau=self.tau, mnu=self.m_nu[-1])
         self.cambparams.InitPower.set_params(As=self.As, ns=self.n, pivot_scalar=self.k0, r=self.r)
         self.cambparams.set_for_lmax(LMAX)
-        self.cambtransferparams.high_precision = 0 # set high precison to True
+        self.cambtransferparams.high_precision = 1 # set high precison to True
         self.cambparams.set_accuracy(AccuracyBoost=aboost, lSampleBoost=50)
 
     def init_camb_transfer(self):
