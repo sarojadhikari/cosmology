@@ -16,7 +16,7 @@ class cosmo(object):
     """
     define a cosmology and provide methods to compute basic cosmological quantities using the currently set cosmological parameters
     """
-    def __init__(self, init_camb=True):
+    def __init__(self, init_camb=True, aboost=1):
         self.set_parameters()
         self.A=1E-10; self.As = (25./9)*self.A
         self.h=self.H0/100.
@@ -27,7 +27,7 @@ class cosmo(object):
         self.camb_init = False
         self.camb_transfer_init = False
         if (init_camb):
-            self.init_camb()
+            self.init_camb(aboost=aboost)
 
     def set_parameters(self):
         self.name = "default"   # default means 2013 here
@@ -39,12 +39,12 @@ class cosmo(object):
         self.Neff=3.046; self.m_nu=[0., 0., 0.06]
         self.flat = True
 
-    def init_camb(self):
-        self.set_camb_parameters()
+    def init_camb(self, aboost=1):
+        self.set_camb_parameters(aboost=aboost)
         #self.get_nonlin_power()
         self.camb_init = True
 
-    def set_camb_parameters(self, LMAX=500, Omk=0.0):
+    def set_camb_parameters(self, LMAX=500, Omk=0.0, aboost=1):
         """
         """
         self.camblmax = LMAX
@@ -54,7 +54,7 @@ class cosmo(object):
         self.cambparams.InitPower.set_params(As=self.As, ns=self.n, pivot_scalar=self.k0, r=self.r)
         self.cambparams.set_for_lmax(LMAX)
         self.cambtransferparams.high_precision = 0 # set high precison to True
-        self.cambparams.set_accuracy(AccuracyBoost=12, lSampleBoost=50)
+        self.cambparams.set_accuracy(AccuracyBoost=aboost, lSampleBoost=50)
 
     def init_camb_transfer(self):
         """
