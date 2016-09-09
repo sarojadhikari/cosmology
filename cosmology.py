@@ -19,12 +19,11 @@ class cosmo(object):
     """
     def __init__(self, init_camb=True, aboost=1):
         self.set_parameters()
-        self.A=1E-10; self.As = (25./9)*self.A
         self.h=self.H0/100.
-        self.k0=0.05/self.h
+        #self.k0=0.05/self.h # if using h/Mpc as the units
+        self.k0=0.05 # if using 1/Mpc as the units (CAMB)
         self.f_baryon=self.Ob0/self.Om0
         self.gf0=self.growth_factor(0.)
-        self.normalize() # normalize the primordial amplitude A for the given sigma8
         self.camb_init = False
         self.camb_transfer_init = False
         self.klist = []
@@ -37,6 +36,7 @@ class cosmo(object):
         self.Ob0=0.048252; self.Om0=0.30712
         self.H0=67.77; self.sigma8=0.8288
         self.n=0.9611; self.r=0.; self.ns = self.n
+        self.As=2.2E-9
         self.tau=0.0952; self.t0=13.7965
         self.z_reion=11.52; self.Tcmb0=2.7255
         self.Neff=3.046; self.m_nu=[0., 0., 0.06]
@@ -52,8 +52,9 @@ class cosmo(object):
         """
         self.camblmax = LMAX
         self.cambparams = camb.CAMBparams()
+        self.camb = camb.camb
         self.cambtransferparams = camb.model.TransferParams()
-        self.cambparams.set_cosmology(H0=self.H0, ombh2=self.Ob0*self.h**2.0, omch2=self.Om0*self.h**2.0, omk=Omk, tau=self.tau, mnu=self.m_nu[-1])
+        self.cambparams.set_cosmology(H0=self.H0, ombh2=self.Ob0*self.h**2.0, omch2=self.Oc0*self.h**2.0, omk=Omk, tau=self.tau, mnu=self.m_nu[-1])
         self.cambparams.InitPower.set_params(As=self.As, ns=self.n, pivot_scalar=self.k0, r=self.r)
         self.cambparams.set_for_lmax(LMAX)
         self.cambtransferparams.high_precision = 1 # set high precison to True
