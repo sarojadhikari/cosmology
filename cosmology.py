@@ -10,6 +10,7 @@ import numpy as np
 from scipy import integrate
 from scipy.interpolate import interp1d
 from utilities.functions import top_hat, Hermite3, BesselJ
+from os.path import isfile
 import camb
 
 class cosmo(object):
@@ -26,6 +27,8 @@ class cosmo(object):
         self.normalize() # normalize the primordial amplitude A for the given sigma8
         self.camb_init = False
         self.camb_transfer_init = False
+        self.klist = []
+        self.glk = []
         if (init_camb):
             self.init_camb(aboost=aboost)
 
@@ -44,7 +47,7 @@ class cosmo(object):
         #self.get_nonlin_power()
         self.camb_init = True
 
-    def set_camb_parameters(self, LMAX=2000, Omk=0.0, aboost=1):
+    def set_camb_parameters(self, LMAX=1500, Omk=0.0, aboost=1):
         """
         """
         self.camblmax = LMAX
@@ -73,7 +76,7 @@ class cosmo(object):
             self.cambtransfer = self.cambdata.get_cmb_transfer_data()
             self.camb_transfer_init = True
             # save the current transfer data
-            fname = "glk_"+str(self.camb_aboost)+"_"+str(self.camblmax)
+            fname = "glk_"+str(self.camb_aboost)+"_"+str(self.camblmax)+".npy"
             np.save(fname, np.array([self.cambtransfer.q, self.cambtransfer.delta_p_l_k]))
             self.klist = self.cambtransfer.q
             self.glk = self.cambtransfer.delta_p_l_k
@@ -98,17 +101,17 @@ class cosmo(object):
         """
         """
         # check if klist and glk are already loaded
-        if (self.klist != None and self.glk != None):
+        if (len(self.klist)>0 and len(self.glk)>0):
             return self.klist, self.glk[0, l-2, :]
         else:
             # first check if there is a file saved for the current AccuracyBoost and LMAX
-            fname = "glk_"+str(self.camb_aboost)+"_"+str(self.camblmax)
-            if (os.file(fname)):
+            fname = "glk_"+str(self.camb_aboost)+"_"+str(self.camblmax)+".npy"
+            if (isfile(fname)):
                 self.klist, self.glk = np.load(fname)
                 return self.klist, self.glk[0, l-2, :]
             else:
                 self.init_camb_transfer()
-                return self.kklist, tlist = self.cambtransfer.q, self.cambtransfer.delta_p_l_k[0, l-2,:]
+                return self.klist, self.glk[0, l-2, :]
 
     def set_r(self, r):
         self.r=r
