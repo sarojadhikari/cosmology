@@ -47,7 +47,7 @@ class cosmo(object):
         #self.get_nonlin_power()
         self.camb_init = True
 
-    def set_camb_parameters(self, LMAX=1500, Omk=0.0, aboost=1):
+    def set_camb_parameters(self, LMAX=3000, Omk=0.0, aboost=1):
         """
         """
         self.camblmax = LMAX
@@ -77,7 +77,7 @@ class cosmo(object):
             self.cambtransfer = self.cambdata.get_cmb_transfer_data()
             self.camb_transfer_init = True
             # save the current transfer data
-            fname = "glk_"+str(self.camb_aboost)+"_"+str(self.camblmax)+".npy"
+            fname = "glk_"+self.name+"_"+str(self.camb_aboost)+"_"+str(self.camblmax)+".npy"
             np.save(fname, np.array([self.cambtransfer.q, self.cambtransfer.delta_p_l_k]))
             self.klist = self.cambtransfer.q
             self.glk = self.cambtransfer.delta_p_l_k
@@ -106,7 +106,7 @@ class cosmo(object):
             return self.klist, self.glk[0, l-2, :]
         else:
             # first check if there is a file saved for the current AccuracyBoost and LMAX
-            fname = "glk_"+str(self.camb_aboost)+"_"+str(self.camblmax)+".npy"
+            fname = "glk_"+self.name+"_"+str(self.camb_aboost)+"_"+str(self.camblmax)+".npy"
             if (isfile(fname)):
                 self.klist, self.glk = np.load(fname)
                 return self.klist, self.glk[0, l-2, :]
