@@ -33,7 +33,7 @@ class cosmo(object):
 
     def set_parameters(self):
         self.name = "default"   # default means 2013 here
-        self.Ob0=0.048252; self.Om0=0.30712
+        self.Ob0=0.048252; self.Om0=0.30712; self.Oc0=self.Om0-self.Ob0
         self.H0=67.77; self.sigma8=0.8288
         self.n=0.9611; self.r=0.; self.ns = self.n
         self.As=2.2E-9
@@ -55,6 +55,7 @@ class cosmo(object):
         self.camb = camb.camb
         self.cambtransferparams = camb.model.TransferParams()
         self.cambparams.set_cosmology(H0=self.H0, ombh2=self.Ob0*self.h**2.0, omch2=self.Oc0*self.h**2.0, omk=Omk, tau=self.tau, mnu=self.m_nu[-1])
+        self.cambparams.set_dark_energy()
         self.cambparams.InitPower.set_params(As=self.As, ns=self.n, pivot_scalar=self.k0, r=self.r)
         self.cambparams.set_for_lmax(LMAX)
         self.cambtransferparams.high_precision = 1 # set high precison to True
@@ -288,6 +289,7 @@ class cosmo(object):
         * As : amplitude for the scalar curvature perturbation :math:`\zeta`
 
         """
+        self.A = 1
         self.A = self.A*(self.sigma8/self.sigmaR(8.0))**2.0
         self.As = self.A*np.power(5./3., 2.0)
 
@@ -298,9 +300,9 @@ class cosmo(object):
         """
         c=299792.458 # speed of light in km/s
         if (z==0):
-            return 2.0*k*k*self.transfer_function(k)*self.gf0*c*c/(3.0*self.Om0*np.power(self.H0/self.h, 2.0))
+            return 2.0*k*k*self.transfer_function(k)*self.gf0*c*c/(3.0*self.Om0*np.power(self.H0, 2.0))
         else:
-            return 2.0*k*k*self.transfer_function(k)*self.growth_factor(z)*c*c/(3.0*self.Om0*np.power(self.H0/self.h, 2.0))
+            return 2.0*k*k*self.transfer_function(k)*self.growth_factor(z)*c*c/(3.0*self.Om0*np.power(self.H0, 2.0))
 
     def growth_factor_integrand(self, z):
         """
