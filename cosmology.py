@@ -42,12 +42,12 @@ class cosmo(object):
         self.Neff=3.046; self.m_nu=[0., 0., 0.06]
         self.flat = True
 
-    def init_camb(self, aboost=1):
-        self.set_camb_parameters(aboost=aboost)
+    def init_camb(self, aboost=1, LMAX=2000):
+        self.set_camb_parameters(aboost=aboost, LMAX=LMAX)
         #self.get_nonlin_power()
         self.camb_init = True
 
-    def set_camb_parameters(self, LMAX=3000, Omk=0.0, aboost=1):
+    def set_camb_parameters(self, LMAX=2000, Omk=0.0, aboost=1):
         """
         """
         self.camblmax = LMAX
@@ -82,7 +82,11 @@ class cosmo(object):
             np.save(fname, np.array([self.cambtransfer.q, self.cambtransfer.delta_p_l_k]))
             self.klist = self.cambtransfer.q
             self.glk = self.cambtransfer.delta_p_l_k
-            
+    
+    def get_camb_results(self):
+        self.cambresults = camb.get_results(self.cambparams)
+        self.totalCl = self.cambresults.get_cmb_power_spectra(self.cambparams)['total']
+        return self.cambresults
 
     def get_nonlin_power(self, z=0., KMAX=2.0, nl=True):
         self.cambparams.set_matter_power(redshifts=[z], kmax=KMAX)
