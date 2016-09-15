@@ -103,21 +103,25 @@ class cosmo(object):
         self.camb_power_lin = interp1d(kh_lin, pk_lin[0,:])
         return self.camb_power_nonlin
 
-    def get_cmb_transfer_l(self, l=2):
+    def get_cmb_transfer_l(self, TEB=0, l=2):
         """
         """
         # check if klist and glk are already loaded
         if (len(self.klist)>0 and len(self.glk)>0):
-            return self.klist, self.glk[0, l-2, :]
+            if (TEB==0):
+                return self.klist, self.glk[0, l-2, :]
+            if (TEB==1):
+                return self.klist, l*l*self.glk[1, l-2, :]]
         else:
             # first check if there is a file saved for the current AccuracyBoost and LMAX
             fname = "glk_"+self.name+"_"+str(self.camb_aboost)+"_"+str(self.camblmax)+".npy"
             if (isfile(fname)):
+                print ("cmb transfer saved file found!")
                 self.klist, self.glk = np.load(fname)
-                return self.klist, self.glk[0, l-2, :]
             else:
+                print ("cmb transfer file not found...generating")
                 self.init_camb_transfer()
-                return self.klist, self.glk[0, l-2, :]
+        self.get_cmb_transfer_l(TEB, l)
 
     def set_r(self, r):
         self.r=r
