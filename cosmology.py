@@ -80,9 +80,9 @@ class cosmo(object):
             # save the current transfer data
             fname = "glk_"+self.name+"_"+str(self.camb_aboost)+"_"+str(self.camblmax)+".npy"
             np.save(fname, np.array([self.cambtransfer.q, self.cambtransfer.delta_p_l_k]))
-            self.klist = self.cambtransfer.q
-            self.glk = self.cambtransfer.delta_p_l_k
-    
+            self.klist = self.cambtransfer.q[0:-15]
+            self.glk = self.cambtransfer.delta_p_l_k[:,:,0:-15]
+
     def get_camb_results(self):
         self.cambresults = camb.get_results(self.cambparams)
         self.totalCl = self.cambresults.get_cmb_power_spectra(self.cambparams)['total']
@@ -118,6 +118,10 @@ class cosmo(object):
             if (isfile(fname)):
                 print ("cmb transfer saved file found!")
                 self.klist, self.glk = np.load(fname)
+                self.klist = self.klist[0:-15]
+                self.glk = self.glk[:,:,0:-15]
+                # the last ~ 15 k samples camb outpu have large dk spacing and produce
+                # oscillations when integrating to compute alpha(r)
                 if (TEB==0):
                     return self.glk[0, l-2, :]
                 else:
