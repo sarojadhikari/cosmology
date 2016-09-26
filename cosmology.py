@@ -57,7 +57,7 @@ class cosmo(object):
         self.cambparams.set_cosmology(H0=self.H0, ombh2=self.Ob0*self.h**2.0, omch2=self.Oc0*self.h**2.0, omk=Omk, tau=self.tau, mnu=self.m_nu[-1])
         self.cambparams.set_dark_energy()
         self.cambparams.InitPower.set_params(As=self.As, ns=self.n, pivot_scalar=self.k0, r=self.r)
-        self.cambparams.set_for_lmax(LMAX)
+        self.cambparams.set_for_lmax(LMAX, max_eta_k=22000.)
         self.cambtransferparams.high_precision = 1 # set high precison to True
         self.cambparams.set_accuracy(AccuracyBoost=aboost, lSampleBoost=50)
         self.camb_aboost = aboost
@@ -118,10 +118,10 @@ class cosmo(object):
             if (isfile(fname)):
                 print ("cmb transfer saved file found!")
                 self.klist, self.glk = np.load(fname)
-                self.klist = self.klist[0:-15]
-                self.glk = self.glk[:,:,0:-15]
-                # the last ~ 15 k samples camb outpu have large dk spacing and produce
-                # oscillations when integrating to compute alpha(r)
+                self.klist = self.klist[self.klist<0.515]
+                # for the glk_*_4_3500.npy, k>~0.515 are sparse (large dk) and 
+                # produce unwanted oscillations in alhpa(r)
+                self.glk = self.glk[:,:,0:len(self.klist)]
                 if (TEB==0):
                     return self.glk[0, l-2, :]
                 else:
