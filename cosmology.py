@@ -9,7 +9,7 @@
 import numpy as np
 from scipy import integrate
 from scipy.interpolate import interp1d
-from utilities.functions import top_hat, Hermite3, BesselJ
+from utilities.functions import top_hat, BesselJ
 from os.path import isfile
 import camb
 
@@ -47,7 +47,7 @@ class cosmo(object):
         #self.get_nonlin_power()
         self.camb_init = True
 
-    def set_camb_parameters(self, LMAX=2000, Omk=0.0, aboost=1):
+    def set_camb_parameters(self, LMAX=2000, Omk=0.0, aboost=1, metak=0.):
         """
         """
         self.camblmax = LMAX
@@ -57,18 +57,21 @@ class cosmo(object):
         self.cambparams.set_cosmology(H0=self.H0, ombh2=self.Ob0*self.h**2.0, omch2=self.Oc0*self.h**2.0, omk=Omk, tau=self.tau, mnu=self.m_nu[-1])
         self.cambparams.set_dark_energy()
         self.cambparams.InitPower.set_params(As=self.As, ns=self.n, pivot_scalar=self.k0, r=self.r)
-        self.cambparams.set_for_lmax(LMAX, max_eta_k=22000.)
+        if (metak>0.):
+            self.cambparams.set_for_lmax(LMAX, max_eta_k=22000.)
+        else:
+            self.cambparams.set_for_lmax(LMAX)
         self.cambtransferparams.high_precision = 1 # set high precison to True
         self.cambparams.set_accuracy(AccuracyBoost=aboost, lSampleBoost=50)
         self.camb_aboost = aboost
 
-    def init_camb_transfer(self):
+    def init_camb_transfer(self, SAVE=True):
         """
         """
-        
+
         if not(self.camb_transfer_init):
             """
-            get the transfer data if it is the first time or if the specified 
+            get the transfer data if it is the first time or if the specified
             accuracy aboost is greater than the one that is saved
             """
             if not(self.camb_init):
@@ -78,10 +81,18 @@ class cosmo(object):
             self.cambtransfer = self.cambdata.get_cmb_transfer_data()
             self.camb_transfer_init = True
             # save the current transfer data
-            fname = "glk_"+self.name+"_"+str(self.camb_aboost)+"_"+str(self.camblmax)+".npy"
-            np.save(fname, np.array([self.cambtransfer.q, self.cambtransfer.delta_p_l_k]))
+            if (SAVE):
+                fname = "glk_"+self.name+"_"+str(self.camb_aboost)+"_"+str(self.camblmax)+".npy"
+                np.save(fname, np.array([self.cambtransfer.q, self.cambtransfer.delta_p_l_k]))
             self.klist = self.cambtransfer.q[0:-15]
             self.glk = self.cambtransfer.delta_p_l_k[:,:,0:-15]
+
+    def init_camb_tensor_transfer(self):
+        """
+        """
+        if not(self.camb_tensor_transfer_init):
+            if not(self.camb_init):
+                self.init_camb()
 
     def get_camb_results(self):
         self.cambresults = camb.get_results(self.cambparams)
@@ -119,7 +130,7 @@ class cosmo(object):
                 print ("cmb transfer saved file found!")
                 self.klist, self.glk = np.load(fname)
                 self.klist = self.klist[self.klist<0.515]
-                # for the glk_*_4_3500.npy, k>~0.515 are sparse (large dk) and 
+                # for the glk_*_4_3500.npy, k>~0.515 are sparse (large dk) and
                 # produce unwanted oscillations in alhpa(r)
                 self.glk = self.glk[:,:,0:len(self.klist)]
                 if (TEB==0):
