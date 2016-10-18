@@ -36,7 +36,7 @@ class cosmo(object):
         self.Ob0=0.048252; self.Om0=0.30712; self.Oc0=self.Om0-self.Ob0
         self.H0=67.77; self.sigma8=0.8288
         self.n=0.9611; self.r=0.; self.ns = self.n
-        self.As=2.2E-9
+        self.As=2.2E-9; self.alphafac = 1.
         self.tau=0.0952; self.t0=13.7965
         self.z_reion=11.52; self.Tcmb0=2.7255
         self.Neff=3.046; self.m_nu=[0., 0., 0.06]
@@ -65,10 +65,10 @@ class cosmo(object):
     def init_camb_transfer(self):
         """
         """
-        
+
         if not(self.camb_transfer_init):
             """
-            get the transfer data if it is the first time or if the specified 
+            get the transfer data if it is the first time or if the specified
             accuracy aboost is greater than the one that is saved
             """
             if not(self.camb_init):
@@ -119,7 +119,7 @@ class cosmo(object):
                 print ("cmb transfer saved file found!")
                 self.klist, self.glk = np.load(fname)
                 self.klist = self.klist[self.klist<0.515]
-                # for the glk_*_4_3500.npy, k>~0.515 are sparse (large dk) and 
+                # for the glk_*_4_3500.npy, k>~0.515 are sparse (large dk) and
                 # produce unwanted oscillations in alhpa(r)
                 self.glk = self.glk[:,:,0:len(self.klist)]
                 if (TEB==0):
@@ -171,6 +171,9 @@ class cosmo(object):
         crit_dens=1.8791e-29*self.h*self.h*pow(mpc_to_cm,3.0) # in grams Mpc^{-3}
         M_sun=1.989e33 # in grams
         return crit_dens*self.Om0/(M_sun/self.h) # in M_sun/h Mpc^{-3}
+
+    def pps(self, k):
+        return self.primordial_power(self.As, k, self.k0)
 
     def primordial_power(self, A, k, k0):
         """
@@ -306,11 +309,12 @@ class cosmo(object):
         * A  : amplitude for the Bardeen potential :math:`\Phi` and
 
         * As : amplitude for the scalar curvature perturbation :math:`\zeta`
-
+        require As to be the input and calculate multiplicative factor for
+        alpha(k)
         """
-        self.A = 1
-        self.A = self.A*(self.sigma8/self.sigmaR(8.0))**2.0
-        self.As = self.A*np.power(5./3., 2.0)
+        self.A = self.As*(3./5)**2.0
+        s8computed = self.sigmaR(8.)
+        self.alphafac = np.sqrt(self.sigma8/s8computed)
 
     def alpha(self, k,z=0):
         """
@@ -319,9 +323,9 @@ class cosmo(object):
         """
         c=299792.458 # speed of light in km/s
         if (z==0):
-            return 2.0*k*k*self.transfer_function(k)*self.gf0*c*c/(3.0*self.Om0*np.power(self.H0, 2.0))
+            return self.alphafac*2.0*k*k*self.transfer_function(k)*self.gf0*c*c/(3.0*self.Om0*np.power(self.H0, 2.0))
         else:
-            return 2.0*k*k*self.transfer_function(k)*self.growth_factor(z)*c*c/(3.0*self.Om0*np.power(self.H0, 2.0))
+            return self.alphafac*2.0*k*k*self.transfer_function(k)*self.growth_factor(z)*(c*c/(3.0*self.Om0*np.power(self.H0, 2.0)))
 
     def growth_factor_integrand(self, z):
         """
