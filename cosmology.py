@@ -334,9 +334,9 @@ class cosmo(object):
         """
         c=299792.458 # speed of light in km/s
         if (z==0):
-            return self.alphafac*2.0*k*k*self.transfer_function(k)*self.gf0*c*c/(3.0*self.Om0*np.power(self.H0, 2.0))
+            return self.alphafac*2.0*k*k*self.transfer_function(k)*self.gf0*c*c/(3.0*self.Om0*np.power(self.H0/self.h, 2.0))
         else:
-            return self.alphafac*2.0*k*k*self.transfer_function(k)*self.growth_factor(z)*(c*c/(3.0*self.Om0*np.power(self.H0, 2.0)))
+            return self.alphafac*2.0*k*k*self.transfer_function(k)*self.growth_factor(z)*(c*c/(3.0*self.Om0*np.power(self.H0/self.h, 2.0)))
 
     def growth_factor_integrand(self, z):
         """
@@ -401,7 +401,7 @@ class cosmo(object):
         return result
 
     def Hubble(self,z):
-        return self.H0*(1+z)*np.sqrt(self.Om0*(1+z)+1-self.Om0)
+        return self.H0*np.sqrt(self.Om0*np.power(1+z, 3.0)+1-self.Om0)
 
     def cmb_lensing_kernel(self, z):
         c=299792.458 # speed of light in km/s
