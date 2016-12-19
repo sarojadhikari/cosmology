@@ -10,7 +10,7 @@ class Planck2013(cosmo):
         self.Ob0=0.048252; self.Om0=0.30712; self.Oc0=self.Om0-self.Ob0
         self.H0=67.77; self.sigma8=0.8288
         self.n=0.9611; self.r=0.; self.ns = self.n
-        self.As=2.2E-9
+        self.As=2.2E-9; self.alphafac = 1.
         self.tau=0.0952; self.z_reion=11.52; self.zeq = 3365
         self.t0=13.7965; self.Tcmb0=2.7255
         self.Neff=3.046; self.m_nu=[0., 0., 0.06]
@@ -27,7 +27,7 @@ class Planck2015(cosmo):
         self.Ob0=0.04841; self.Om0=0.308; self.Oc0=self.Om0-self.Ob0
         self.H0=67.8; self.sigma8 = 0.815
         self.n=0.968; self.r=0.; self.ns = self.n
-        self.As=2.139E-9
+        self.As=2.139E-9; self.alphafac = 1.
         self.tau=0.0660; self.z_reion=8.8; self.zeq = 3365
         self.t0=13.799; self.Tcmb0=2.7255
         self.Neff=3.046 # this is the standard model N_eff Planck measures: 3.15\pm0.23
