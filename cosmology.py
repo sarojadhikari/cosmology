@@ -19,6 +19,7 @@ class cosmo(object):
     """
     def __init__(self, init_camb=True, aboost=1):
         self.set_parameters()
+        self.set_A(self.As*3./5)
         self.h=self.H0/100.
         #self.k0=0.05/self.h # if using h/Mpc as the units
         self.k0=0.05 # if using 1/Mpc as the units (CAMB)
