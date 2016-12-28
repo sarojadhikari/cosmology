@@ -139,6 +139,17 @@ class cosmo(object):
                 else:
                     return l*l*self.glk[TEB, l-2, :]
             else:
+                # try if the file is in ./datafiles/
+                if isfile("datafiles/"+fname):
+                    print ("cmb transfer saved file found!")
+                    self.klist, self.glk = np.load(fname)
+                    self.klist = self.klist[self.klist<0.515]
+                    self.glk = self.glk[:,:,0:len(self.klist)]
+                    if (TEB==0):
+                        return self.glk[0, l-2, :]
+                    else:
+                        return l*l*self.glk[TEB, l-2, :]
+                    
                 print ("cmb transfer file not found...generating")
                 self.init_camb_transfer()
                 if (TEB==0):
