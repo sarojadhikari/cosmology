@@ -19,7 +19,7 @@ class cosmo(object):
     """
     def __init__(self, init_camb=True, aboost=1):
         self.set_parameters()
-        self.set_A(self.As*3./5)
+        self.A = self.As*9./25.
         self.h=self.H0/100.
         #self.k0=0.05/self.h # if using h/Mpc as the units
         self.k0=0.05 # if using 1/Mpc as the units (CAMB)
@@ -159,12 +159,6 @@ class cosmo(object):
 
     def set_r(self, r):
         self.r=r
-
-    def set_A(self, A):
-        """set the amplitude A of the primordial power spectrum.
-        Note that this will not change the value of sigma_8
-        """
-        self.A=A
 
     def set_sigma8(self, s8):
         self.sigma8=s8
