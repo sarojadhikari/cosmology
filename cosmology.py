@@ -142,7 +142,7 @@ class cosmo(object):
                 # try if the file is in ./datafiles/
                 if isfile("datafiles/"+fname):
                     print ("cmb transfer saved file found!")
-                    self.klist, self.glk = np.load(fname)
+                    self.klist, self.glk = np.load("datafiles/"+fname)
                     self.klist = self.klist[self.klist<0.515]
                     self.glk = self.glk[:,:,0:len(self.klist)]
                     if (TEB==0):
