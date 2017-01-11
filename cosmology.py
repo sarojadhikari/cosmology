@@ -43,7 +43,7 @@ class cosmo(object):
         self.Neff=3.046; self.m_nu=[0., 0., 0.06]
         self.flat = True
 
-    def init_camb(self, aboost=1, LMAX=2000):
+    def init_camb(self, aboost=4, LMAX=3500):
         self.set_camb_parameters(aboost=aboost, LMAX=LMAX)
         #self.get_nonlin_power()
         self.camb_init = True
@@ -68,8 +68,9 @@ class cosmo(object):
 
     def init_camb_transfer(self, SAVE=True):
         """
+        do not call this directly--call get_cmb_transfer_l() which looks for a
+        saved file and calls this function only if there is no saved file
         """
-
         if not(self.camb_transfer_init):
             """
             get the transfer data if it is the first time or if the specified
@@ -86,7 +87,19 @@ class cosmo(object):
                 fname = "glk_"+self.name+"_"+str(self.camb_aboost)+"_"+str(self.camblmax)+".npy"
                 np.save(fname, np.array([self.cambtransfer.q, self.cambtransfer.delta_p_l_k]))
             self.klist = self.cambtransfer.q[0:-15]
-            self.glk = self.cambtransfer.delta_p_l_k[:,:,0:-15]
+            self.glk = (5./3.)*self.cambtransfer.delta_p_l_k[:,:,0:-15]
+            """
+            the factor of (5./3) is necessary as the code uses Bardeen potential but the glk_data
+            returned assumes curvature perturbations
+
+            one could have rather done the translation of Phi to zeta later when computing alms or Cls
+            -- but it is already done here so that there is no need to keep track of
+            (3./5) factors anywhere else
+
+            That this factor is necessary can be checked by tallying the results from
+            get_camb_results and get_Cls_from_glk
+            """
+
 
     def init_camb_tensor_transfer(self):
         """
@@ -99,6 +112,24 @@ class cosmo(object):
         self.cambresults = camb.get_results(self.cambparams)
         self.totalCl = self.cambresults.get_cmb_power_spectra(self.cambparams)['total']
         return self.cambresults
+
+    def get_Cls_from_glk(self, TEB=0, LMAX=100):
+        """
+        this will work as a check for the transfer function glk normalization
+
+        C_l = 4 pi int_0^infty dlnk glk^2 A_phi (k/k0)^{ns-1}
+        """
+        Cls=[0., 0.]
+
+        for l in range(2, LMAX+1):
+            integrand = 4.*np.pi*np.power(self.get_cmb_transfer_l(TEB, l), 2.0)*(
+                        self.primordial_power(self.A, self.klist, self.k0)/self.klist)
+            Cl = integrate.trapz(integrand, self.klist)
+
+            Cls.append(Cl)
+
+        return np.array(Cls)
+
 
     def get_nonlin_power(self, z=0., KMAX=2.0, nl=True):
         self.cambparams.set_matter_power(redshifts=[z], kmax=KMAX)
