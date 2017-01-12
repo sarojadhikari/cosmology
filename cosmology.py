@@ -85,7 +85,7 @@ class cosmo(object):
             # save the current transfer data
             if (SAVE):
                 fname = "glk_"+self.name+"_"+str(self.camb_aboost)+"_"+str(self.camblmax)+".npy"
-                np.save(fname, np.array([self.cambtransfer.q, self.cambtransfer.delta_p_l_k]))
+                np.save(fname, np.array([self.cambtransfer.q, (5./3)*self.cambtransfer.delta_p_l_k]))
             self.klist = self.cambtransfer.q[0:-15]
             self.glk = (5./3.)*self.cambtransfer.delta_p_l_k[:,:,0:-15]
             """
