@@ -2,7 +2,7 @@
 cosmology.cosmo class with Planck 2013 and 2015 cosmological parameters
 """
 
-from cosmology import cosmo
+from cosmology.cosmology import cosmo
 
 class Planck2013(cosmo):
     def set_parameters(self):

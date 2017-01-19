@@ -8,16 +8,14 @@
 
 import numpy as np
 from scipy import integrate
-from scipy.interpolate import interp1d
 from utilities.functions import top_hat, BesselJ
-from os.path import isfile
-import camb
 
 class cosmo(object):
     """
-    define a cosmology and provide methods to compute basic cosmological quantities using the currently set cosmological parameters
+    define a cosmology and provide methods to compute basic cosmological
+    quantities using the currently set cosmological parameters
     """
-    def __init__(self, init_camb=True, aboost=1):
+    def __init__(self):
         self.set_parameters()
         self.A = self.As*9./25.
         self.h=self.H0/100.
@@ -25,12 +23,7 @@ class cosmo(object):
         self.k0=0.05 # if using 1/Mpc as the units (CAMB)
         self.f_baryon=self.Ob0/self.Om0
         self.gf0=self.growth_factor(0.)
-        self.camb_init = False
-        self.camb_transfer_init = False
         self.klist = []
-        self.glk = []
-        if (init_camb):
-            self.init_camb(aboost=aboost)
 
     def set_parameters(self):
         self.name = "default"   # default means 2013 here
@@ -42,151 +35,6 @@ class cosmo(object):
         self.z_reion=11.52; self.Tcmb0=2.7255
         self.Neff=3.046; self.m_nu=[0., 0., 0.06]
         self.flat = True
-
-    def init_camb(self, aboost=4, LMAX=3500):
-        self.set_camb_parameters(aboost=aboost, LMAX=LMAX)
-        #self.get_nonlin_power()
-        self.camb_init = True
-
-    def set_camb_parameters(self, LMAX=2000, Omk=0.0, aboost=1, metak=0.):
-        """
-        """
-        self.camblmax = LMAX
-        self.cambparams = camb.CAMBparams()
-        self.camb = camb.camb
-        self.cambtransferparams = camb.model.TransferParams()
-        self.cambparams.set_cosmology(H0=self.H0, ombh2=self.Ob0*self.h**2.0, omch2=self.Oc0*self.h**2.0, omk=Omk, tau=self.tau, mnu=self.m_nu[-1])
-        self.cambparams.set_dark_energy()
-        self.cambparams.InitPower.set_params(As=self.As, ns=self.n, pivot_scalar=self.k0, r=self.r)
-        if (metak>0.):
-            self.cambparams.set_for_lmax(LMAX, max_eta_k=22000.)
-        else:
-            self.cambparams.set_for_lmax(LMAX)
-        self.cambtransferparams.high_precision = 1 # set high precison to True
-        self.cambparams.set_accuracy(AccuracyBoost=aboost, lSampleBoost=50)
-        self.camb_aboost = aboost
-
-    def init_camb_transfer(self, SAVE=True):
-        """
-        do not call this directly--call get_cmb_transfer_l() which looks for a
-        saved file and calls this function only if there is no saved file
-        """
-        if not(self.camb_transfer_init):
-            """
-            get the transfer data if it is the first time or if the specified
-            accuracy aboost is greater than the one that is saved
-            """
-            if not(self.camb_init):
-                self.init_camb()
-
-            self.cambdata = camb.get_transfer_functions(self.cambparams)
-            self.cambtransfer = self.cambdata.get_cmb_transfer_data()
-            self.camb_transfer_init = True
-            # save the current transfer data
-            if (SAVE):
-                fname = "glk_"+self.name+"_"+str(self.camb_aboost)+"_"+str(self.camblmax)+".npy"
-                np.save(fname, np.array([self.cambtransfer.q, (5./3)*self.cambtransfer.delta_p_l_k]))
-            self.klist = self.cambtransfer.q[0:-15]
-            self.glk = (5./3.)*self.cambtransfer.delta_p_l_k[:,:,0:-15]
-            """
-            the factor of (5./3) is necessary as the code uses Bardeen potential but the glk_data
-            returned assumes curvature perturbations
-
-            one could have rather done the translation of Phi to zeta later when computing alms or Cls
-            -- but it is already done here so that there is no need to keep track of
-            (3./5) factors anywhere else
-
-            That this factor is necessary can be checked by tallying the results from
-            get_camb_results and get_Cls_from_glk
-            """
-
-
-    def init_camb_tensor_transfer(self):
-        """
-        """
-        if not(self.camb_tensor_transfer_init):
-            if not(self.camb_init):
-                self.init_camb()
-
-    def get_camb_results(self):
-        self.cambresults = camb.get_results(self.cambparams)
-        self.totalCl = self.cambresults.get_cmb_power_spectra(self.cambparams)['total']
-        return self.cambresults
-
-    def get_Cls_from_glk(self, TEB=0, LMAX=100):
-        """
-        this will work as a check for the transfer function glk normalization
-
-        C_l = 4 pi int_0^infty dlnk glk^2 A_phi (k/k0)^{ns-1}
-        """
-        Cls=[0., 0.]
-
-        for l in range(2, LMAX+1):
-            integrand = 4.*np.pi*np.power(self.get_cmb_transfer_l(TEB, l), 2.0)*(
-                        self.primordial_power(self.A, self.klist, self.k0)/self.klist)
-            Cl = integrate.trapz(integrand, self.klist)
-
-            Cls.append(Cl)
-
-        return np.array(Cls)
-
-
-    def get_nonlin_power(self, z=0., KMAX=2.0, nl=True):
-        self.cambparams.set_matter_power(redshifts=[z], kmax=KMAX)
-        if (nl):
-            self.cambparams.NonLinear = camb.model.NonLinear_both
-        else:
-            self.cambparams.NonLinear = camb.model.NonLinear_none
-
-        self.cambresults = camb.get_results(self.cambparams)
-        kh_nonlin, z_nonlin, pk_nonlin = self.cambresults.get_matter_power_spectrum(minkh=1E-5, maxkh=1.5, npoints=500)
-        # now that we have the power spectrum; interpolate
-        kh_lin, z_lin, pk_lin = self.cambresults.get_linear_matter_power_spectrum()
-        self.camb_power_nonlin = interp1d(kh_nonlin, pk_nonlin[0,:])
-        self.camb_power_lin = interp1d(kh_lin, pk_lin[0,:])
-        return self.camb_power_nonlin
-
-    def get_cmb_transfer_l(self, TEB=0, l=2):
-        """
-        """
-        # check if klist and glk are already loaded
-        if (len(self.klist)>0 and len(self.glk)>0):
-            if (TEB==0):
-                return self.glk[0, l-2, :]
-            else:
-                return l*l*self.glk[TEB, l-2, :]
-        else:
-            # first check if there is a file saved for the current AccuracyBoost and LMAX
-            fname = "glk_"+self.name+"_"+str(self.camb_aboost)+"_"+str(self.camblmax)+".npy"
-            if (isfile(fname)):
-                print ("cmb transfer saved file found!")
-                self.klist, self.glk = np.load(fname)
-                self.klist = self.klist[self.klist<0.515]
-                # for the glk_*_4_3500.npy, k>~0.515 are sparse (large dk) and
-                # produce unwanted oscillations in alhpa(r)
-                self.glk = self.glk[:,:,0:len(self.klist)]
-                if (TEB==0):
-                    return self.glk[0, l-2, :]
-                else:
-                    return l*l*self.glk[TEB, l-2, :]
-            else:
-                # try if the file is in ./datafiles/
-                if isfile("datafiles/"+fname):
-                    print ("cmb transfer saved file found!")
-                    self.klist, self.glk = np.load("datafiles/"+fname)
-                    self.klist = self.klist[self.klist<0.515]
-                    self.glk = self.glk[:,:,0:len(self.klist)]
-                    if (TEB==0):
-                        return self.glk[0, l-2, :]
-                    else:
-                        return l*l*self.glk[TEB, l-2, :]
-                    
-                print ("cmb transfer file not found...generating")
-                self.init_camb_transfer()
-                if (TEB==0):
-                    return self.glk[0, l-2, :]
-                else:
-                    return l*l*self.glk[TEB, l-2, :]
 
     def set_r(self, r):
         self.r=r
@@ -325,29 +173,6 @@ class cosmo(object):
         """
         integrand = lambda qx, qy, qz: cubic_top_hat(2*R1, qx, qy, qz)*cubic_top_hat(2*R2, qx, qy, qz)*self.power_spectrumz(np.sqrt(qx*qx+qy*qy+qz*qz), z=0.)*BesselJ(0, np.sqrt(qx*qx+qy*qy))
 
-    def xi_camb(self, r=0., z1=0.0, R1=8., z2=0.0, R2=8.):
-        """return the smoothed two-point correlation function
-        using the non-linear matter spectrum from camb
-
-        make sure to run get_nonlin_power using z=0
-        """
-        fac = self.gfratio(z1)*self.gfratio(z2)/(2.*np.power(np.pi, 2.0))
-        integrand = lambda q: q*q*top_hat(q, R1)*top_hat(q, R2)*BesselJ(0, q*r)*self.camb_power_nonlin(q)
-        results = integrate.quad(integrand, 2E-5, 20./min(R1, R2), limit=300)
-        return fac*results[0]
-
-    def non_linear_matter_power(self, k):
-        """ return a interpolated function for the non-linear matter
-        power spectrum; the data points are computed using CAMB
-        non-linear spectrum (Halofit)
-        """
-
-    def xiNL(self, r=0., z1=0.0, R1=8., z2=0.0, R2=8.):
-        """return the smoothed two-point correlation function (of two subvolumes of size R1 and R2), r apart
-
-        this version differs from xi() in the use of the non-linear power
-        spectrum from CAMB
-        """
 
     def normalize(self):
         """
