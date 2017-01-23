@@ -25,6 +25,10 @@ class cosmo(object):
         self.gf0=self.growth_factor(0.)
         self.klist = []
 
+        ## some other useful derived variables
+        self.omhh = self.Om0*self.h**2.0
+        self.obhh = self.omhh * self.f_baryon
+
     def set_parameters(self):
         self.name = "default"   # default means 2013 here
         self.Ob0=0.048252; self.Om0=0.30712; self.Oc0=self.Om0-self.Ob0
@@ -312,6 +316,15 @@ class cosmo(object):
         """
         q=k/self.Om0/self.h
         return np.log(1+2.34*q)/(2.34*q)*(1+3.89*q+(16.2*q)**2.0+(5.47*q)**3.0+(6.71*q)**4.0)**(-0.25)
+
+    def zdrag(self):
+        """ use the EH fitting function
+        """
+        z_drag_b1=0.313*self.omhh**(-0.419)*(1.+0.607*self.omhh**0.674)
+        z_drag_b2=0.238*self.omhh**0.223
+        z_drag=1291*(self.omhh**0.251)/(1+0.659*self.omhh**0.828)*(1+z_drag_b1*self.obhh**z_drag_b2)
+        return z_drag
+
 
     def transfer_function(self, k, hMpc=True):
         """
