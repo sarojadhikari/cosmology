@@ -5,6 +5,9 @@ from os.path import isfile
 import numpy as np
 from cosmology.cosmoparams import Planck2015
 import camb
+import pkg_resources
+from astropy.io import fits
+
 default_cosmo = Planck2015()
 
 class CMB(object):
@@ -155,3 +158,20 @@ class CMB(object):
                     return self.glk[0, l - 2, :]
                 else:
                     return l * l * self.glk[TEB, l - 2, :]
+
+    def get_Planck_power_spectra(self):
+        # read the Planck smica Cl values; note that this is NOT a LCDM (or bestfit)
+        # value, but a specific realization
+        resouce_path = '/'.join(('datafiles', 'COM_PowerSpect_CMB_R2.01.fits'))
+        filename = pkg_resources.resource_filename(resource_package, resource_path)
+        try:
+            hdulist = fits.open(filename)
+            data = hdulist[1].data # Cls upto 250
+            max_index = 249
+            self.llist = np.array([data[i][0] for i in range(max_index)])
+            self.Dlist = np.array([data[i][1] for i in range(max_index)])
+            self.Derr1 = np.array([data[i][2] for i in range(max_index)])
+            self.Derr2 = np.array([data[i][3] for i in range(max_index)])
+        except:
+            print ("error with file: ")
+            print ("make sure COM_PowerSpect_CMB_R2.01.fits is in /datafiles/ in the package folder")
