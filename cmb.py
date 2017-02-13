@@ -18,6 +18,9 @@ class CMB(object):
         self.cosmology = cosmology
         self.klist = []
         self.glk = []
+        self.camb_init = False
+        self.camb_transfer_init = False
+
         if (camb_init):
             self.init_camb()
 
@@ -110,7 +113,7 @@ class CMB(object):
 
         for l in range(2, LMAX+1):
             integrand = 4.*np.pi*np.power(self.get_cmb_transfer_l(TEB, l), 2.0)*(
-                        self.primordial_power(self.A, self.klist, self.k0)/self.klist)
+                        self.cosmology.primordial_power(self.A, self.klist, self.k0)/self.klist)
             Cl = integrate.trapz(integrand, self.klist)
 
             Cls.append(Cl)
@@ -159,17 +162,23 @@ class CMB(object):
                 else:
                     return l * l * self.glk[TEB, l - 2, :]
 
-    def get_Planck_power_spectra(self):
+    def get_Planck_power_spectra(self, muKsq=True):
         # read the Planck smica Cl values; note that this is NOT a LCDM (or bestfit)
         # value, but a specific realization
-        resouce_path = '/'.join(('datafiles', 'COM_PowerSpect_CMB_R2.01.fits'))
+        resource_package = "cosmology"
+        resource_path = '/'.join(('datafiles', 'COM_PowerSpect_CMB_R2.01.fits'))
         filename = pkg_resources.resource_filename(resource_package, resource_path)
         try:
             hdulist = fits.open(filename)
             data = hdulist[1].data # Cls upto 250
             max_index = 249
+            if (muKsq):
+                mufac = 1./(2.*np.pi)
+            else:
+                mufac = (2.727E6)**2.0 / (2.*np.pi)
             self.llist = np.array([data[i][0] for i in range(max_index)])
             self.Dlist = np.array([data[i][1] for i in range(max_index)])
+            self.Clist = np.array([self.Dlist[l-2]/(l*(l+1))/mufac for l in self.llist])
             self.Derr1 = np.array([data[i][2] for i in range(max_index)])
             self.Derr2 = np.array([data[i][3] for i in range(max_index)])
         except:
