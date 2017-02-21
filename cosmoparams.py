@@ -4,6 +4,9 @@ cosmology.cosmo class with Planck 2013 and 2015 cosmological parameters
 
 from cosmology.cosmology import cosmo
 
+
+resource_package = "cosmology"
+
 class Planck2013(cosmo):
     def set_parameters(self):
         self.name="Planck2013"
@@ -33,3 +36,7 @@ class Planck2015(cosmo):
         self.Neff=3.046 # this is the standard model N_eff Planck measures: 3.15\pm0.23
         self.m_nu=[0., 0., 0.06]
         self.flat=True
+
+
+
+
