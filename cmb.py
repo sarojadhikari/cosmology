@@ -4,6 +4,7 @@ CMB computations from pycamb --- needs the cosmology class
 from os.path import isfile
 import numpy as np
 from cosmology.cosmoparams import Planck2015
+from scipy import integrate
 import camb
 import pkg_resources
 from astropy.io import fits
@@ -113,7 +114,7 @@ class CMB(object):
 
         for l in range(2, LMAX+1):
             integrand = 4.*np.pi*np.power(self.get_cmb_transfer_l(TEB, l), 2.0)*(
-                        self.cosmology.primordial_power(self.A, self.klist, self.k0)/self.klist)
+                        self.cosmology.pps(self.klist)/self.klist)
             Cl = integrate.trapz(integrand, self.klist)
 
             Cls.append(Cl)
