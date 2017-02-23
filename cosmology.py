@@ -73,7 +73,13 @@ class cosmo(object):
         return crit_dens*self.Om0/(M_sun/self.h) # in M_sun/h Mpc^{-3}
 
     def pps(self, k):
-        return self.primordial_power(self.As, k, self.k0)
+        """
+        should use self.A (A_Phi, self.As is A_zeta);
+        the old version of glk_data files use As convention
+        if there is discrepency in Cls computation CHECK that
+        the CONVENTION are consistently followed!
+        """
+        return self.primordial_power(self.A, k, self.k0)
 
     def primordial_power(self, A, k, k0):
         """
