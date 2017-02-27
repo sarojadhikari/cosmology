@@ -5,7 +5,6 @@ from os.path import isfile
 import numpy as np
 from cosmology.cosmoparams import Planck2015
 from scipy import integrate
-import camb
 import pkg_resources
 from astropy.io import fits
 
@@ -23,6 +22,7 @@ class CMB(object):
         self.camb_transfer_init = False
 
         if (camb_init):
+            import camb
             self.init_camb()
 
     def init_camb(self, aboost=4, LMAX=3500):
@@ -121,15 +121,15 @@ class CMB(object):
 
         return np.array(Cls)
 
-    def get_cmb_transfer_l(self, TEB=0, l=2):
+    def get_cmb_transfer_l(self, TEB=0, l=2, KMINI=0, KMAXI=None):
         """
         """
         # check if klist and glk are already loaded
         if (len(self.klist) > 0 and len(self.glk) > 0):
             if (TEB == 0):
-                return self.glk[0, l - 2, :]
+                return self.glk[0, l - 2, KMINI:KMAXI]
             else:
-                return l * l * self.glk[TEB, l - 2, :]
+                return l * l * self.glk[TEB, l - 2, KMINI:KMAXI]
         else:
             # first check if there is a file saved for the current AccuracyBoost and LMAX
             fname = "glk_" + self.cosmology.name + "_" + str(self.camb_aboost) + "_" + str(self.camblmax) + ".npy"
