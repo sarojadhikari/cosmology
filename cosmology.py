@@ -8,7 +8,6 @@
 
 import numpy as np
 from scipy import integrate
-from utilities.functions import top_hat, BesselJ
 
 class cosmo(object):
     """
@@ -164,6 +163,7 @@ class cosmo(object):
         now use the CAMB power spectrum
         """
         #fac = 1./(2.*np.power(np.pi, 2.0))
+        from utilities.functions import top_hat
         integrand = lambda q: np.power(top_hat(q, R)*self.alpha(q), 2.0)*self.primordial_power(self.A, q, self.k0)/q
         #integrand = lambda q: q*q*np.power(top_hat(q, R), 2.0)*self.camb_power_lin(q)
         results = integrate.quad(integrand, 0.0, 20./R, limit=80)
@@ -172,6 +172,7 @@ class cosmo(object):
     def xi(self, r=0., z1=0.0, R1=8., z2=0.0, R2=8.):
         """return the smoothed two-point correlation function (of two subvolumes of size R1 and R2), r apart
         """
+        from utilities.functions import BesselJ, top_hat
         fac = self.gfratio(z1)*self.gfratio(z2)/(2.*np.power(np.pi, 2.0))
         integrand = lambda q: q*q*top_hat(q, R1)*top_hat(q, R2)*BesselJ(0, q*r)*self.power_spectrumz(q, z=0)
         results = integrate.quad(integrand, 0.0, 20./min(R1, R2))
@@ -181,7 +182,7 @@ class cosmo(object):
         """return the smoothed two-point correlation function for the case of
         a cubic volume
         """
-        integrand = lambda qx, qy, qz: cubic_top_hat(2*R1, qx, qy, qz)*cubic_top_hat(2*R2, qx, qy, qz)*self.power_spectrumz(np.sqrt(qx*qx+qy*qy+qz*qz), z=0.)*BesselJ(0, np.sqrt(qx*qx+qy*qy))
+        #integrand = lambda qx, qy, qz: cubic_top_hat(2*R1, qx, qy, qz)*cubic_top_hat(2*R2, qx, qy, qz)*self.power_spectrumz(np.sqrt(qx*qx+qy*qy+qz*qz), z=0.)*BesselJ(0, np.sqrt(qx*qx+qy*qy))
 
 
     def normalize(self):
