@@ -22,7 +22,6 @@ class CMB(object):
         self.camb_transfer_init = False
 
         if (camb_init):
-            import camb
             self.init_camb()
 
     def init_camb(self, aboost=4, LMAX=3500):
@@ -33,6 +32,7 @@ class CMB(object):
     def set_camb_parameters(self, LMAX=2000, Omk=0.0, aboost=1, metak=0.):
         """
         """
+        import camb
         self.camblmax = LMAX
         self.cambparams = camb.CAMBparams()
         self.camb = camb.camb
