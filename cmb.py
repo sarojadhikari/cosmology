@@ -1,7 +1,7 @@
 """
 CMB computations from pycamb --- needs the cosmology class
 """
-from os.path import isfile
+from os.path import isfile, dirname, abspath
 import numpy as np
 from cosmology.cosmoparams import Planck2015
 from scipy import integrate
@@ -9,6 +9,8 @@ import pkg_resources
 from astropy.io import fits
 
 default_cosmo = Planck2015()
+LOCATION = dirname(abspath(__file__))
+print (LOCATION)
 
 class CMB(object):
 
@@ -100,7 +102,7 @@ class CMB(object):
                 self.init_camb()
 
     def get_camb_results(self):
-        self.cambresults = camb.get_results(self.cambparams)
+        self.cambresults = self.camb.get_results(self.cambparams)
         self.totalCl = self.cambresults.get_cmb_power_spectra(self.cambparams)['total']
         return self.cambresults
 
@@ -132,10 +134,11 @@ class CMB(object):
                 return l * l * self.glk[TEB, l - 2, KMINI:KMAXI]
         else:
             # first check if there is a file saved for the current AccuracyBoost and LMAX
-            fname = "glk_" + self.cosmology.name + "_" + str(self.camb_aboost) + "_" + str(self.camblmax) + ".npy"
-            if (isfile(fname)):
+            fname = "glk_" + self.cosmology.name + "_" + (
+                    str(self.camb_aboost) + "_" + str(self.camblmax) + ".npy")
+            if (isfile(LOCATION+"/"+fname)):
                 print("cmb transfer saved file found!")
-                self.klist, self.glk = np.load(fname)
+                self.klist, self.glk = np.load(LOCATION+"/"+fname)
                 self.klist = self.klist[self.klist < 0.515]
                 # for the glk_*_4_3500.npy, k>~0.515 are sparse (large dk) and
                 # produce unwanted oscillations in alhpa(r)
