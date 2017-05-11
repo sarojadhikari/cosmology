@@ -10,7 +10,6 @@ from astropy.io import fits
 
 default_cosmo = Planck2015()
 LOCATION = dirname(abspath(__file__))
-print (LOCATION)
 
 class CMB(object):
 
