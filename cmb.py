@@ -27,7 +27,6 @@ class CMB(object):
 
     def init_camb(self, aboost=4, LMAX=3500):
         self.set_camb_parameters(aboost=aboost, LMAX=LMAX)
-        #self.get_nonlin_power()
         self.camb_init = True
 
     def set_camb_parameters(self, LMAX=2000, Omk=0.0, aboost=1, metak=0.):
@@ -58,7 +57,7 @@ class CMB(object):
                                      lSampleBoost=50)
         self.camb_aboost = aboost
 
-    def init_camb_transfer(self, SAVE=True):
+    def init_camb_transfer(self, SAVE=True, PROJECTFOLDER=True):
         """
         do not call this directly--call get_cmb_transfer_l() which looks for a
         saved file and calls this function only if there is no saved file
@@ -77,7 +76,18 @@ class CMB(object):
             # save the current transfer data
             if (SAVE):
                 fname = "glk_"+self.cosmology.name+"_"+str(self.camb_aboost)+"_"+str(self.camblmax)+".npy"
-                np.save(fname, np.array([self.cambtransfer.q, (5./3)*self.cambtransfer.delta_p_l_k]))
+                if (PROJECTFOLDER):
+                    try:
+                        np.save(LOCATION+"/"+fname, np.array([
+                        self.cambtransfer.q, (5./3)*self.cambtransfer.delta_p_l_k]))
+                    except:
+                        print ("cannot write to cosmology folder")
+                        np.save(fname, np.array([
+                        self.cambtransfer.q, (5./3)*self.cambtransfer.delta_p_l_k]))
+                else:
+                    np.save(fname, np.array([
+                    self.cambtransfer.q, (5./3)*self.cambtransfer.delta_p_l_k]))
+
             self.klist = self.cambtransfer.q[0:-15]
             self.glk = (5./3.)*self.cambtransfer.delta_p_l_k[:,:,0:-15]
             """
