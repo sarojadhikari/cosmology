@@ -71,7 +71,7 @@ class CMB(object):
             if not(self.camb_init):
                 self.init_camb()
 
-            self.cambdata = camb.get_transfer_functions(self.cambparams)
+            self.cambdata = self.camb.get_transfer_functions(self.cambparams)
             self.cambtransfer = self.cambdata.get_cmb_transfer_data()
             self.camb_transfer_init = True
             # save the current transfer data
