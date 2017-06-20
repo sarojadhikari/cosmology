@@ -33,20 +33,21 @@ class CMB(object):
         """
         """
         import camb
+        h = self.cosmology.h
         self.camblmax = LMAX
         self.cambparams = camb.CAMBparams()
         self.camb = camb.camb
         self.cambtransferparams = camb.model.TransferParams()
         self.cambparams.set_cosmology(H0=self.cosmology.H0,
-                                      ombh2=self.cosmology.Ob0*self.cosmology.h**2.0,
-                                      omch2=self.cosmology.Oc0*self.cosmology.h**2.0,
+                                      ombh2=self.cosmology.Ob0*h**2.0,
+                                      omch2=self.cosmology.Oc0*h**2.0,
                                       omk=Omk,
                                       tau=self.cosmology.tau,
                                       mnu=self.cosmology.m_nu[-1])
         self.cambparams.set_dark_energy()
         self.cambparams.InitPower.set_params(As=self.cosmology.As,
                                              ns=self.cosmology.n,
-                                             pivot_scalar=self.cosmology.k0,
+                                             pivot_scalar=self.cosmology.k0*h,
                                              r=self.cosmology.r)
         if (metak>0.):
             self.cambparams.set_for_lmax(LMAX, max_eta_k=22000.)
