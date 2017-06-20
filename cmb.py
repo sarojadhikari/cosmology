@@ -89,7 +89,7 @@ class CMB(object):
                     np.save(fname, np.array([
                     self.cambtransfer.q, (5./3)*self.cambtransfer.delta_p_l_k]))
 
-            self.klist = self.cambtransfer.q[0:-15]
+            self.klist = self.cambtransfer.q[0:-15] / self.cosmology.h
             self.glk = (5./3.)*self.cambtransfer.delta_p_l_k[:,:,0:-15]
             """
             the factor of (5./3) is necessary as the code uses Bardeen potential but the glk_data
@@ -101,8 +101,10 @@ class CMB(object):
 
             That this factor is necessary can be checked by tallying the results from
             get_camb_results and get_Cls_from_glk
+            
+            Also, the saved q values are in 1/Mpc, and therefore when the file is
+            read use klist = q/h so that its units are h/Mpc.
             """
-
 
     def init_camb_tensor_transfer(self):
         """
@@ -149,7 +151,7 @@ class CMB(object):
             if (isfile(LOCATION+"/"+fname)):
                 print("cmb transfer saved file found!")
                 self.klist, self.glk = np.load(LOCATION+"/"+fname)
-                self.klist = self.klist[self.klist < 0.515]
+                self.klist = self.klist[self.klist < 0.515] / self.cosmology.h
                 # for the glk_*_4_3500.npy, k>~0.515 are sparse (large dk) and
                 # produce unwanted oscillations in alhpa(r)
                 self.glk = self.glk[:, :, 0:len(self.klist)]
@@ -162,7 +164,7 @@ class CMB(object):
                 if isfile("datafiles/" + fname):
                     print("cmb transfer saved file found!")
                     self.klist, self.glk = np.load("datafiles/" + fname)
-                    self.klist = self.klist[self.klist < 0.515]
+                    self.klist = self.klist[self.klist < 0.515] / self.cosmoloy.h
                     self.glk = self.glk[:, :, 0:len(self.klist)]
                     if (TEB == 0):
                         return self.glk[0, l - 2, :]
