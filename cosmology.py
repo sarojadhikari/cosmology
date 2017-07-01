@@ -18,7 +18,7 @@ class cosmo(object):
         self.set_parameters()
         self.A = self.As*9./25.
         self.h=self.H0/100.
-        self.k0=0.05/self.h # if using h/Mpc as the units
+        self.k0=0.05 # 1/Mpc
         self.f_baryon=self.Ob0/self.Om0
         self.gf0=self.growth_factor(0.)
         self.klist = []
