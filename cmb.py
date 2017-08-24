@@ -24,6 +24,10 @@ class CMB(object):
 
         if (camb_init):
             self.init_camb()
+        else:
+            # set these parameters anyway to read the saved file
+            self.camb_aboost = 4
+            self.camblmax = 3500
 
     def init_camb(self, aboost=4, LMAX=3500):
         self.set_camb_parameters(aboost=aboost, LMAX=LMAX)
