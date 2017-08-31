@@ -1,10 +1,12 @@
 """
 cosmology.cosmo class with Planck 2013 and 2015 cosmological parameters
 """
+from os.path import isfile, dirname, abspath
 
 from cosmology.cosmology import cosmo
+import numpy as np
 
-
+LOCATION = dirname(abspath(__file__))
 resource_package = "cosmology"
 
 class Planck2013(cosmo):
@@ -36,6 +38,26 @@ class Planck2015(cosmo):
         self.Neff=3.046 # this is the standard model N_eff Planck measures: 3.15\pm0.23
         self.m_nu=[0., 0., 0.06]
         self.flat=True
+        
+    def get_Planck_hiL_data(self, lmin=30, lmax=2500, Cls=True):
+        """
+        read the text file and output the temperature Cls
+        """
+        fname = LOCATION + "/COM_PowerSpect_CMB-TT-hiL-full_R2.02.txt"
+        if isfile(fname):
+            data = np.loadtxt(fname, skiprows=3)[:,1]
+            
+        if (Cls):
+            """
+            return Cls rather than Dls
+            this is dimensionless i.e. divided by Tcmb^2 and therefore
+            not in temperature units
+            """
+            factor = (1E-6/self.Tcmb0)**2.0*2.*np.pi
+            return np.array([data[l-30]*factor/l/(l+1) for l in range(lmin, lmax)])
+        
+        return data[lmin-30:lmax,1]
+        
 
 
 
