@@ -57,9 +57,18 @@ class cosmo(object):
 
     def set_h(self, h):
         self.h=h
+        self.H0 = h * 100
 
+    def set_H0(self, H0):
+        self.H0 = H0
+        self.h = H0 / 100
+        
     def set_tau(self, tau):
         self.tau=tau
+    
+    def set_A(self, A):
+        self.A = A
+        self.As = 25.*A/9.
 
     def rhom(self):
         """
