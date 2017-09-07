@@ -56,7 +56,7 @@ class Planck2015(cosmo):
             not in temperature units
             """
             factor = (1E-6/self.Tcmb0)**2.0*2.*np.pi
-            cls = np.array([data[l-30]*factor/l/(l+1) for l in range(lmin, lmax+1)])
+            cls = np.array([dls[l-30]*factor/l/(l+1) for l in range(lmin, lmax+1)])
             err = np.array([gerr[l-30]*factor/l/(l+1) for l in range(lmin, lmax+1)])
             return cls, err
         
