@@ -50,6 +50,7 @@ class cosmo(object):
 
     def set_Om0(self, Om):
         self.Om0=Om
+        self.Oc0=self.Om0-self.Ob0
 
     def set_n(self, ns):
         self.n=ns
