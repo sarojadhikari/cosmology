@@ -57,7 +57,7 @@ class CMB(object):
             self.cambparams.set_for_lmax(LMAX, max_eta_k=22000.)
         else:
             self.cambparams.set_for_lmax(LMAX)
-        self.cambtransferparams.high_precision = 1 # set high precison to True
+        #self.cambtransferparams.high_precision = 1 # set high precison to True
         self.cambparams.set_accuracy(AccuracyBoost=aboost,
                                      lSampleBoost=50)
         self.camb_aboost = aboost
