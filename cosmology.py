@@ -47,6 +47,10 @@ class cosmo(object):
 
     def set_Ob0(self, Ob):
         self.Ob0=Ob
+        
+    def set_Oc0(self, Oc):
+        self.Oc0=Oc
+        self.Om0 = Oc + self.Ob0
 
     def set_Om0(self, Om):
         self.Om0=Om
