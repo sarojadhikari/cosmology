@@ -122,6 +122,7 @@ class CMB(object):
         self.totalDls = self.cambresults.get_cmb_power_spectra(self.cambparams)['total']
         ls = np.arange(len(self.totalDls[:,0]))
         self.cambTCls = np.array([2.*np.pi*self.totalDls[i,0]/i/(i+1) for i in ls])
+        self.cambTCls[0]=0.
         return self.cambresults
 
     def get_Cls_from_glk(self, TEB=0, LMAX=100):
