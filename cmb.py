@@ -46,7 +46,7 @@ class CMB(object):
                                       ombh2=self.cosmology.Ob0*h**2.0,
                                       omch2=self.cosmology.Oc0*h**2.0,
                                       omk=Omk,
-                                      #tau=self.cosmology.tau,
+                                      tau=self.cosmology.tau,
                                       mnu=self.cosmology.m_nu[-1])
         self.cambparams.set_dark_energy()
         self.cambparams.InitPower.set_params(As=self.cosmology.As,
