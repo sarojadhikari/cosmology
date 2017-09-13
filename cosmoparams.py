@@ -43,6 +43,8 @@ class Planck2015(cosmo):
         """
         read the text file and output the temperature Cls
         """
+        if (lmin<30):
+            lmin=30
         fname = LOCATION + "/COM_PowerSpect_CMB-TT-hiL-full_R2.02.txt"
         if isfile(fname):
             data = np.loadtxt(fname, skiprows=3)
@@ -61,6 +63,26 @@ class Planck2015(cosmo):
             return cls, err
         
         return dls[lmin-30:lmax+1], gerr[lmin-30:lmax+1]
+    
+    def get_Planck_lowL_data(self, lmin=2, lmax=29, Cls=True):
+        """
+        """
+        if (lmax>29):
+            lmax = 29
+        fname = LOCATION +"/COM_PowerSpect_CMB-TT-loL-full_R2.02.txt"
+        if isfile(fname):
+            data = np.loadtxt(fname, skiprows=3)
+            dls = data[:,1]
+            gerr = data[:,2]
+            
+        if (Cls):
+            factor = (1E-6/self.Tcmb0)**2.0*2.*np.pi
+            cls = np.array([dls[l-30]*factor/l/(l+1) for l in range(lmin, lmax+1)])
+            err = np.array([gerr[l-30]*factor/l/(l+1) for l in range(lmin, lmax+1)])
+            return cls, err
+        
+        return dls[lmin-2:lmax+1], gerr[lmin-2:lmax+1]
+            
         
 
 
