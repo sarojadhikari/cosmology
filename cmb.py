@@ -94,7 +94,7 @@ class CMB(object):
                     self.cambtransfer.q, (5./3)*self.cambtransfer.delta_p_l_k]))
 
             self.klist = self.cambtransfer.q[0:-15]
-            self.glk = self.cambtransfer.delta_p_l_k[:,:,0:-15]
+            self.glk = (5./3)*self.cambtransfer.delta_p_l_k[:,:,0:-15]
             """
             the factor of (5./3) is necessary as the code uses Bardeen potential but the glk_data
             returned assumes curvature perturbations
