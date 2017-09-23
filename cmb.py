@@ -38,11 +38,23 @@ class CMB(object):
         """
         """
         import camb
-        h = self.cosmology.h
         self.camblmax = LMAX
         self.cambparams = camb.CAMBparams()
         self.camb = camb.camb
         self.cambtransferparams = camb.model.TransferParams()
+        self.set_camb_cosmology(Omk=Omk)
+        
+        if (metak>0.):
+            self.cambparams.set_for_lmax(LMAX, max_eta_k=22000.)
+        else:
+            self.cambparams.set_for_lmax(LMAX)
+        #self.cambtransferparams.high_precision = 1 # set high precison to True
+        self.cambparams.set_accuracy(AccuracyBoost=aboost,
+                                     lSampleBoost=lboost)
+        self.camb_aboost = aboost
+
+    def set_camb_cosmology(self, Omk=0.0):
+        h = self.cosmology.h
         self.cambparams.set_cosmology(H0=self.cosmology.H0,
                                       ombh2=self.cosmology.Ob0*h**2.0,
                                       omch2=self.cosmology.Oc0*h**2.0,
@@ -54,14 +66,7 @@ class CMB(object):
                                              ns=self.cosmology.n,
                                              pivot_scalar=self.cosmology.k0*h,
                                              r=self.cosmology.r)
-        if (metak>0.):
-            self.cambparams.set_for_lmax(LMAX, max_eta_k=22000.)
-        else:
-            self.cambparams.set_for_lmax(LMAX)
-        #self.cambtransferparams.high_precision = 1 # set high precison to True
-        self.cambparams.set_accuracy(AccuracyBoost=aboost,
-                                     lSampleBoost=lboost)
-        self.camb_aboost = aboost
+       
 
     def init_camb_transfer(self, SAVE=True, PROJECTFOLDER=True):
         """
