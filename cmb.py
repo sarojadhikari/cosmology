@@ -26,14 +26,15 @@ class CMB(object):
             self.init_camb()
         else:
             # set these parameters anyway to read the saved file
-            self.camb_aboost = 4
-            self.camblmax = 3500
+            self.camb_aboost = 1
+            self.camblmax = 2500
 
-    def init_camb(self, aboost=4, LMAX=3500):
-        self.set_camb_parameters(aboost=aboost, LMAX=LMAX)
+    def init_camb(self, aboost=1, lboost=1, LMAX=2500):
+        self.set_camb_parameters(aboost=aboost, lboost=1, LMAX=LMAX)
         self.camb_init = True
 
-    def set_camb_parameters(self, LMAX=2000, Omk=0.0, aboost=1, metak=0.):
+    def set_camb_parameters(self, LMAX=2000, Omk=0.0, 
+                            aboost=1, lboost=1, metak=0.):
         """
         """
         import camb
@@ -59,7 +60,7 @@ class CMB(object):
             self.cambparams.set_for_lmax(LMAX)
         #self.cambtransferparams.high_precision = 1 # set high precison to True
         self.cambparams.set_accuracy(AccuracyBoost=aboost,
-                                     lSampleBoost=50)
+                                     lSampleBoost=lboost)
         self.camb_aboost = aboost
 
     def init_camb_transfer(self, SAVE=True, PROJECTFOLDER=True):
