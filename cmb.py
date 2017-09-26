@@ -30,7 +30,7 @@ class CMB(object):
             self.camblmax = 2500
 
     def init_camb(self, aboost=1, lboost=1, LMAX=2500):
-        self.set_camb_parameters(aboost=aboost, lboost=1, LMAX=LMAX)
+        self.set_camb_parameters(aboost=aboost, lboost=lboost, LMAX=LMAX)
         self.camb_init = True
 
     def set_camb_parameters(self, LMAX=2000, Omk=0.0, 
