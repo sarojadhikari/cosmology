@@ -38,7 +38,7 @@ class Planck2015(cosmo):
         self.Neff=3.046 # this is the standard model N_eff Planck measures: 3.15\pm0.23
         self.m_nu=[0., 0., 0.06]
         self.flat=True
-        
+
     def get_Planck_hiL_data(self, lmin=30, lmax=2500, Cls=True):
         """
         read the text file and output the temperature Cls
@@ -50,7 +50,7 @@ class Planck2015(cosmo):
             data = np.loadtxt(fname, skiprows=3)
             dls = data[:,1]
             gerr = data[:,2]
-            
+
         if (Cls):
             """
             return Cls rather than Dls
@@ -61,9 +61,9 @@ class Planck2015(cosmo):
             cls = np.array([dls[l-30]*factor/l/(l+1) for l in range(lmin, lmax+1)])
             err = np.array([gerr[l-30]*factor/l/(l+1) for l in range(lmin, lmax+1)])
             return cls, err
-        
+
         return dls[lmin-30:lmax+1], gerr[lmin-30:lmax+1]
-    
+
     def get_Planck_lowL_data(self, lmin=2, lmax=29, Cls=True):
         """
         """
@@ -74,17 +74,20 @@ class Planck2015(cosmo):
             data = np.loadtxt(fname, skiprows=3)
             dls = data[:,1]
             gerr = data[:,2]
-            
+
         if (Cls):
             factor = (1E-6/self.Tcmb0)**2.0*2.*np.pi
             cls = np.array([dls[l-30]*factor/l/(l+1) for l in range(lmin, lmax+1)])
             err = np.array([gerr[l-30]*factor/l/(l+1) for l in range(lmin, lmax+1)])
             return cls, err
-        
+
         return dls[lmin-2:lmax+1], gerr[lmin-2:lmax+1]
-            
-        
 
+    def get_unbinned_Planck_data(self, lmin=2, lmax=2500, Cls=True):
 
-
-
+        if lmin>29:
+            return self.get_Planck_hiL_data(lmin=lmin, lmax=lmax, Cls=Cls)
+        else:
+            lowcls, lowerr = self.get_Planck_lowL_data(lmin=lmin, lmax=29, Cls=Cls)
+            hicls, hierr = self.get_Planck_hiL_data(lmin=30, lmax=lmax, Cls=Cls)
+            return np.append(lowcls, hicls), np.append(lowerr, hierr)
