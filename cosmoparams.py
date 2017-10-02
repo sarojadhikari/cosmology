@@ -73,7 +73,7 @@ class Planck2015(cosmo):
         if isfile(fname):
             data = np.loadtxt(fname, skiprows=3)
             dls = data[:,1]
-            gerr = data[:,2]
+            gerr = (data[:,2]+data[:,3])/2.0 # take average of up and low errors
 
         if (Cls):
             factor = (1E-6/self.Tcmb0)**2.0*2.*np.pi
