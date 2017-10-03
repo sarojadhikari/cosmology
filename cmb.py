@@ -33,7 +33,7 @@ class CMB(object):
         self.set_camb_parameters(aboost=aboost, lboost=lboost, LMAX=LMAX)
         self.camb_init = True
 
-    def set_camb_parameters(self, LMAX=2000, Omk=0.0, 
+    def set_camb_parameters(self, LMAX=2000, Omk=0.0,
                             aboost=1, lboost=1, metak=0.):
         """
         """
@@ -43,7 +43,7 @@ class CMB(object):
         self.camb = camb.camb
         self.cambtransferparams = camb.model.TransferParams()
         self.set_camb_cosmology(Omk=Omk)
-        
+
         if (metak>0.):
             self.cambparams.set_for_lmax(LMAX, max_eta_k=22000.)
         else:
@@ -64,9 +64,9 @@ class CMB(object):
         self.cambparams.set_dark_energy()
         self.cambparams.InitPower.set_params(As=self.cosmology.As,
                                              ns=self.cosmology.n,
-                                             pivot_scalar=self.cosmology.k0*h,
+                                             pivot_scalar=self.cosmology.k0,
                                              r=self.cosmology.r)
-       
+
 
     def init_camb_transfer(self, SAVE=True, PROJECTFOLDER=True):
         """
@@ -111,7 +111,7 @@ class CMB(object):
 
             That this factor is necessary can be checked by tallying the results from
             get_camb_results and get_Cls_from_glk
-            
+
             Also, the saved q values are in 1/Mpc, and therefore when the file is
             read use klist = q/h if your units are h/Mpc.
             """
