@@ -39,13 +39,13 @@ class Planck2015(cosmo):
         self.m_nu=[0., 0., 0.06]
         self.flat=True
 
-    def get_Planck_hiL_data(self, lmin=30, lmax=2500, Cls=True):
+    def get_Planck_hiL_data(self, lmin=30, lmax=2000, which="TT", Cls=True):
         """
         read the text file and output the temperature Cls
         """
         if (lmin<30):
             lmin=30
-        fname = LOCATION + "/COM_PowerSpect_CMB-TT-hiL-full_R2.02.txt"
+        fname = LOCATION + "/COM_PowerSpect_CMB-"+which+"-hiL-full_R2.02.txt"
         if isfile(fname):
             data = np.loadtxt(fname, skiprows=3)
             dls = data[:,1]
@@ -64,12 +64,12 @@ class Planck2015(cosmo):
 
         return dls[lmin-30:lmax+1], gerr[lmin-30:lmax+1]
 
-    def get_Planck_lowL_data(self, lmin=2, lmax=29, Cls=True):
+    def get_Planck_lowL_data(self, lmin=2, lmax=29, which="TT", Cls=True):
         """
         """
         if (lmax>29):
             lmax = 29
-        fname = LOCATION +"/COM_PowerSpect_CMB-TT-loL-full_R2.02.txt"
+        fname = LOCATION +"/COM_PowerSpect_CMB-"+which+"-loL-full_R2.02.txt"
         if isfile(fname):
             data = np.loadtxt(fname, skiprows=3)
             dls = data[:,1]
@@ -83,11 +83,11 @@ class Planck2015(cosmo):
 
         return dls[lmin-2:lmax+1], gerr[lmin-2:lmax+1]
 
-    def get_unbinned_Planck_data(self, lmin=2, lmax=2500, Cls=True):
+    def get_unbinned_Planck_data(self, lmin=2, lmax=2000, which="TT", Cls=True):
 
         if lmin>29:
-            return self.get_Planck_hiL_data(lmin=lmin, lmax=lmax, Cls=Cls)
+            return self.get_Planck_hiL_data(lmin=lmin, lmax=lmax, which=which, Cls=Cls)
         else:
-            lowcls, lowerr = self.get_Planck_lowL_data(lmin=lmin, lmax=29, Cls=Cls)
-            hicls, hierr = self.get_Planck_hiL_data(lmin=30, lmax=lmax, Cls=Cls)
+            lowcls, lowerr = self.get_Planck_lowL_data(lmin=lmin, lmax=29, which=which, Cls=Cls)
+            hicls, hierr = self.get_Planck_hiL_data(lmin=30, lmax=lmax, which=which, Cls=Cls)
             return np.append(lowcls, hicls), np.append(lowerr, hierr)
