@@ -74,6 +74,9 @@ class Planck2015(cosmo):
             data = np.loadtxt(fname, skiprows=3)
             dls = data[:,1]
             gerr = (data[:,2]+data[:,3])/2.0 # take average of up and low errors
+        else:
+            print ("power spectrum file not found..\n")
+            return 0
 
         if (Cls):
             factor = (1E-6/self.Tcmb0)**2.0*2.*np.pi

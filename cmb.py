@@ -129,6 +129,8 @@ class CMB(object):
         ls = np.arange(1, len(self.totalDls[:,0]))
         cambTCls1 = np.array([2.*np.pi*self.totalDls[i,0]/i/(i+1) for i in ls])
         self.cambTCls = np.append([0.], cambTCls1)
+        cambECls1 = np.array([2.*np.pi*self.totalDls[i,1]/i/(i+1) for i in ls])
+        self.cambECls = np.append([0.], cambECls1)
         cambTECls1 = np.array([2.*np.pi*self.totalDls[i,3]/i/(i+1) for i in ls])
         self.cambTECls = np.append([0.], cambTECls1)
         return self.cambresults
