@@ -62,7 +62,7 @@ class Planck2015(cosmo):
             err = np.array([gerr[l-30]*factor/l/(l+1) for l in range(lmin, lmax+1)])
             return cls, err
 
-        return dls[lmin-30:lmax+1], gerr[lmin-30:lmax+1]
+        return dls[lmin-30:lmax+1-lmin], gerr[lmin-30:lmax+1-lmin]
 
     def get_Planck_lowL_data(self, lmin=2, lmax=29, which="TT", Cls=True):
         """
@@ -80,16 +80,18 @@ class Planck2015(cosmo):
 
         if (Cls):
             factor = (1E-6/self.Tcmb0)**2.0*2.*np.pi
-            cls = np.array([dls[l-30]*factor/l/(l+1) for l in range(lmin, lmax+1)])
-            err = np.array([gerr[l-30]*factor/l/(l+1) for l in range(lmin, lmax+1)])
+            cls = np.array([dls[l-2]*factor/l/(l+1) for l in range(lmin, lmax+1)])
+            err = np.array([gerr[l-2]*factor/l/(l+1) for l in range(lmin, lmax+1)])
             return cls, err
 
-        return dls[lmin-2:lmax+1], gerr[lmin-2:lmax+1]
+        return dls[lmin-2:lmax-1], gerr[lmin-2:lmax-1]
 
     def get_unbinned_Planck_data(self, lmin=2, lmax=2000, which="TT", Cls=True):
 
         if lmin>29:
             return self.get_Planck_hiL_data(lmin=lmin, lmax=lmax, which=which, Cls=Cls)
+        elif (lmax<30):
+            return self.get_Planck_lowL_data(lmin=lmin, lmax=lmax, which=which, Cls=Cls)
         else:
             lowcls, lowerr = self.get_Planck_lowL_data(lmin=lmin, lmax=29, which=which, Cls=Cls)
             hicls, hierr = self.get_Planck_hiL_data(lmin=30, lmax=lmax, which=which, Cls=Cls)
