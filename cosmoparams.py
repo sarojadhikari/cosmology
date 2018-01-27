@@ -96,3 +96,16 @@ class Planck2015(cosmo):
             lowcls, lowerr = self.get_Planck_lowL_data(lmin=lmin, lmax=29, which=which, Cls=Cls)
             hicls, hierr = self.get_Planck_hiL_data(lmin=30, lmax=lmax, which=which, Cls=Cls)
             return np.append(lowcls, hicls), np.append(lowerr, hierr)
+
+    def get_Planck_bestfit_theory(self, lmin=2, lmax=2000, which="TT", Cls=True):
+        fname = LOCATION + "/COM_PowerSpect_CMB-base-plikHM-TT-lowTEB-minimum-theory_R2.02.txt"
+        data = np.loadtxt(fname, skiprows=1)
+        ls = data[:,0]
+        if which=="TT":
+            dls = data[:,1]
+
+        if (Cls):
+            factor = (1E-6/self.Tcmb0)**2.0*2.*np.pi
+            return np.array([dls[l-2]*factor/l/(l+1) for l in range(lmin, lmax+1)])
+
+        return dls[lmin-2:lmax-1]
