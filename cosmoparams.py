@@ -100,9 +100,15 @@ class Planck2015(cosmo):
     def get_Planck_bestfit_theory(self, lmin=2, lmax=2000, which="TT", Cls=True):
         fname = LOCATION + "/COM_PowerSpect_CMB-base-plikHM-TT-lowTEB-minimum-theory_R2.02.txt"
         data = np.loadtxt(fname, skiprows=1)
-        ls = data[:,0]
+        #ls = data[:,0]
         if which=="TT":
             dls = data[:,1]
+        elif which=="TE":
+            dls = data[:,2]
+        elif which=="EE":
+            dls = data[:,3]
+        elif which=="BB":
+            dls = data[:,4]
 
         if (Cls):
             factor = (1E-6/self.Tcmb0)**2.0*2.*np.pi
