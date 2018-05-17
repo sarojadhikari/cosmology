@@ -8,6 +8,9 @@ from cosmology.cmb import CMB
 from cosmology.cosmoparams import Planck2015
 from scipy.stats import chi2
 
+from os.path import dirname, abspath
+LOCATION = dirname(abspath(__file__))
+
 cmb = CMB(camb_init=False)
 cmb.init_camb(aboost=1, lboost=1, LMAX=100)
 cmb.cambparams.DoLensing = 1
@@ -15,7 +18,7 @@ cmb.cambparams.DoLensing = 1
 p15 = Planck2015()
 
 lmin = 2; lmax=29
-fl = np.loadtxt("commander_dx11d2_mask_temp_n0016_likelihood_v1_f.dat", skiprows=lmin)
+fl = np.loadtxt(LOCATION+"/commander_dx11d2_mask_temp_n0016_likelihood_v1_f.dat", skiprows=lmin)
 fsky = 0.9362
 mufac = (2.7255E6)**2.0 # conversion to muK^2
 
