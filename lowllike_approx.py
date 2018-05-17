@@ -28,19 +28,22 @@ cls_meas_low = cls_meas_low * mufac
 chi2s = [chi2((2*l+1)*fsky*fl[l-lmin]) for l in range(lmin, lmax+1)]
 
 def lowllike(x):
-    logA, ns, H0, Oc, Ob, tau = x
+    if len(x)==6:
+        logA, ns, H0, Oc, Ob, tau = x
     
-    cmb.cosmology.set_H0(H0)
-    cmb.cosmology.set_n(ns)
-    cmb.cosmology.set_A((9./25)*np.exp(logA)*1.e-10)
-    cmb.cosmology.set_Oc0(Oc)
-    cmb.cosmology.set_Ob0(Ob)
-    cmb.cosmology.set_tau(tau)
+        cmb.cosmology.set_H0(H0)
+        cmb.cosmology.set_n(ns)
+        cmb.cosmology.set_A((9./25)*np.exp(logA)*1.e-10)
+        cmb.cosmology.set_Oc0(Oc)
+        cmb.cosmology.set_Ob0(Ob)
+        cmb.cosmology.set_tau(tau)
     
-    cmb.set_camb_cosmology()
-    cmb.get_camb_results()
+        cmb.set_camb_cosmology()
+        cmb.get_camb_results()
     
-    cls_lowl = cmb.cambTCls[lmin:30]*mufac
+        cls_lowl = cmb.cambTCls[lmin:30]*mufac
+    else:
+        cls_lowl = x
     
     lowlkl = np.log([chi2s[l-lmin].pdf(
              (2*l+1)*fsky*fl[l-lmin]*cls_meas_low[l-lmin]/cls_lowl[l-lmin])/cls_lowl[l-lmin] 
