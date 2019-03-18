@@ -22,6 +22,7 @@ class cosmo(object):
         self.f_baryon=self.Ob0/self.Om0
         self.gf0=self.growth_factor(0.)
         self.klist = []
+        self.nowiggles = False
 
         ## some other useful derived variables
         self.omhh = self.Om0*self.h**2.0
@@ -346,7 +347,7 @@ class cosmo(object):
         return z_drag
 
 
-    def transfer_function(self, k, hMpc=True):
+    def transfer_function(self, k, hMpc=True, nowiggles=False):
         """
         return the transfer function T(k) for the current cosmology
         this python version was simply taken from the C code (tf_fit.c) for EH transfer function
@@ -356,7 +357,7 @@ class cosmo(object):
         make sure to look at the additional code right after this comment
         below to change to 1/Mpc if the input is intended to be h/Mpc
         """
-        # make sure to change the input k in units of 1/Mpc is your input
+        # make sure to change the input k in units of 1/Mpc as the input
         # is in h/Mpc
         #================================================================
         if (hMpc==True):
@@ -402,30 +403,43 @@ class cosmo(object):
         beta_b = 0.5+f_baryon+(3.-2.*f_baryon)*np.sqrt(pow(17.2*omhh,2.0)+1)
 
         #k_peak = 2.5*3.14159*(1+0.217*omhh)/sound_horizon
-        #sound_horizon_fit = 44.5*np.log(9.83/omhh)/np.sqrt(1+10.0*pow(obhh,0.75))
+        sound_horizon_fit = 44.5*np.log(9.83/omhh)/np.sqrt(1+10.0*pow(obhh,0.75))
 
-        #alpha_gamma = 1-0.328*np.log(431.0*omhh)*f_baryon + 0.38*np.log(22.3*omhh)*f_baryon**2.0;
+        alpha_gamma = 1-0.328*np.log(431.0*omhh)*f_baryon + 0.38*np.log(22.3*omhh)*f_baryon**2.0;
+        
+        if not(self.nowiggles):
+            # the TFfit_onek code starts from here
+            # ====================================
+            q = k/13.41/k_equality
+            xx = k*sound_horizon
 
-        # the TFfit_onek code starts from here
-        # ====================================
-        q = k/13.41/k_equality
-        xx = k*sound_horizon
+            T_c_ln_beta = np.log(2.718282+1.8*beta_c*q)
+            T_c_ln_nobeta = np.log(2.718282+1.8*q)
+            T_c_C_alpha = 14.2/alpha_c + 386.0/(1+69.9*pow(q,1.08))
+            T_c_C_noalpha = 14.2 + 386.0/(1+69.9*pow(q,1.08))
 
-        T_c_ln_beta = np.log(2.718282+1.8*beta_c*q)
-        T_c_ln_nobeta = np.log(2.718282+1.8*q)
-        T_c_C_alpha = 14.2/alpha_c + 386.0/(1+69.9*pow(q,1.08))
-        T_c_C_noalpha = 14.2 + 386.0/(1+69.9*pow(q,1.08))
+            T_c_f = 1.0/(1.0+pow(xx/5.4, 4.0))
+            T_c = T_c_f*T_c_ln_beta/(T_c_ln_beta+T_c_C_noalpha*(q*q)) + (1-T_c_f)*T_c_ln_beta/(T_c_ln_beta+T_c_C_alpha*(q*q))
 
-        T_c_f = 1.0/(1.0+pow(xx/5.4, 4.0))
-        T_c = T_c_f*T_c_ln_beta/(T_c_ln_beta+T_c_C_noalpha*(q*q)) + (1-T_c_f)*T_c_ln_beta/(T_c_ln_beta+T_c_C_alpha*(q*q))
+            s_tilde = sound_horizon*pow(1+pow(beta_node/xx, 3.0),-1./3.)
+            xx_tilde = k*s_tilde
 
-        s_tilde = sound_horizon*pow(1+pow(beta_node/xx, 3.0),-1./3.)
-        xx_tilde = k*s_tilde
+            T_b_T0 = T_c_ln_nobeta/(T_c_ln_nobeta+T_c_C_noalpha*(q*q));
+            T_b = np.sin(xx_tilde)/(xx_tilde)*(T_b_T0/(1+pow(xx/5.2,2.0))+
+		    alpha_b/(1+pow(beta_b/xx,3.0))*np.exp(-pow(k/k_silk,1.4)));
 
-        T_b_T0 = T_c_ln_nobeta/(T_c_ln_nobeta+T_c_C_noalpha*(q*q));
-        T_b = np.sin(xx_tilde)/(xx_tilde)*(T_b_T0/(1+pow(xx/5.2,2.0))+
-		alpha_b/(1+pow(beta_b/xx,3.0))*np.exp(-pow(k/k_silk,1.4)));
+            f_baryon = obhh/omhh;
+            T_full = f_baryon*T_b + (1-f_baryon)*T_c;
+            return T_full
+        else:
+            q = k/13.41/k_equality;
+            xx = k*sound_horizon_fit
+            
+            gamma_eff = omhh*(alpha_gamma+(1.-alpha_gamma)/(1.+np.power(0.43*xx, 4.)));
+            q_eff = q*omhh/gamma_eff
+            T_nowiggles_L0 = np.log(2.0*2.718282+1.8*q_eff);
+            T_nowiggles_C0 = 14.2 + 731.0/(1.+62.5*q_eff);
+            return T_nowiggles_L0/(T_nowiggles_L0+T_nowiggles_C0*np.power(q_eff, 2.0))
 
-        f_baryon = obhh/omhh;
-        T_full = f_baryon*T_b + (1-f_baryon)*T_c;
-        return T_full
+
+
