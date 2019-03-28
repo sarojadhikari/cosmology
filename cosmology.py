@@ -32,7 +32,7 @@ class cosmo(object):
         self.name = "default"   # default means 2013 here
         self.Ob0=0.048252; self.Om0=0.30712; self.Oc0=self.Om0-self.Ob0
         self.H0=67.77; self.sigma8=0.8288
-        self.n=0.9611; self.r=0.; self.ns = self.n
+        self.ns=0.9611; self.r=0.; 
         self.As=2.2E-9; self.alphafac = 1.
         self.tau=0.0952; self.t0=13.7965
         self.z_reion=11.52; self.Tcmb0=2.7255
@@ -57,8 +57,7 @@ class cosmo(object):
         self.Om0=Om
         self.Oc0=self.Om0-self.Ob0
 
-    def set_n(self, ns):
-        self.n=ns
+    def set_ns(self, ns):
         self.ns=ns
 
     def set_h(self, h):
@@ -104,7 +103,7 @@ class cosmo(object):
             \\mathcal{P}(k) = A \\left( \\frac{k}{k_0} \\right)^{n_s-1}
 
         """
-        return  A*(k/k0)**(self.n-1)
+        return  A*(k/k0)**(self.ns-1)
 
     def power_spectrumz(self, k, z=0):
         """
@@ -118,13 +117,13 @@ class cosmo(object):
         """
         if A==0.:
             A=self.A
-        return A*np.power(self.alpha(k,z=0), 2.0)*2.*np.power(np.pi, 2.0)*np.power(k/self.k0, self.n-1.0)/np.power(k, 3.0) # alternatively one can directly implement alpha(k,z=0) here are cancel some powers of k
+        return A*np.power(self.alpha(k,z=0), 2.0)*2.*np.power(np.pi, 2.0)*np.power(k/self.k0, self.ns-1.0)/np.power(k, 3.0) # alternatively one can directly implement alpha(k,z=0) here are cancel some powers of k
 
     def power_spectrum_bbks(self, A, k):
         """
         return the matter power spectrum using bbks transfer function
         """
-        return A*(2.*np.pi**2.0)*k**self.n * (2998./self.h)**(3.+self.n)*(self.transfer_function_bbks(k)*self.growth_factor(0.0))**2.0
+        return A*(2.*np.pi**2.0)*k**self.ns * (2998./self.h)**(3.+self.ns)*(self.transfer_function_bbks(k)*self.growth_factor(0.0))**2.0
 
     def growth_rate_f(self, z, factor=1.0001):
         """
